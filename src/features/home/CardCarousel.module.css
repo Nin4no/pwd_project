@@ -1,0 +1,135 @@
+/* 홈 공용 카드 캐러셀 (최근 작업한 방 · 인기 쇼룸) — Atelier 3D 에디토리얼 스크롤 트랙 */
+.carousel {
+  --carousel-gap: var(--sp-5);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.track {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  gap: var(--carousel-gap);
+  overflow-x: auto;
+  overflow-y: visible;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+  /* 카드 box-shadow 및 호버 translateY(-2px)가 상하로 잘리지 않도록 여유 공간 확보 */
+  padding-block: var(--sp-3) var(--sp-5);
+  margin-block: calc(-1 * var(--sp-3)) calc(-1 * var(--sp-5));
+}
+
+.track::-webkit-scrollbar {
+  display: none;
+}
+
+/* 데스크톱 (> 1024px): 3장 정밀 노출 */
+.track > * {
+  scroll-snap-align: start;
+  flex: 0 0 calc((100% - 2 * var(--carousel-gap)) / 3);
+  min-width: 0;
+}
+
+/* 좌·우 트랙 사이드 화살표 버튼 — 트랙 수직 중앙 정렬, 카드 위 부유 */
+.navBtn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background-color: var(--surface-glass);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  cursor: pointer;
+  transition:
+    background-color var(--dur) var(--ease-out),
+    border-color var(--dur) var(--ease-out),
+    color var(--dur) var(--ease-out),
+    box-shadow var(--dur) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+/* HomeSection .frame(padding: var(--sp-7)) 여백을 활용해 카드 가장자리 걸쳐 배치 */
+.navPrev {
+  left: calc(-1 * var(--sp-4));
+}
+
+.navNext {
+  right: calc(-1 * var(--sp-4));
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .navBtn:hover {
+    background-color: var(--surface);
+    border-color: var(--primary);
+    color: var(--primary-dark);
+    box-shadow: var(--shadow);
+    transform: translateY(-50%) scale(1.04);
+  }
+}
+
+.navBtn:active {
+  transform: translateY(-50%) scale(0.94);
+}
+
+.navBtn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.navIcon {
+  width: 18px;
+  height: 18px;
+}
+
+/* 태블릿 / 미디엄 (<= 1024px): 2장 정밀 노출 */
+@media (max-width: 1024px) {
+  .track > * {
+    flex: 0 0 calc((100% - var(--carousel-gap)) / 2);
+  }
+}
+
+/* 모바일 (<= 640px): ~1.15장 노출 (다음 카드 14% 피크) 및 좌우 화살표 트랙 안쪽 인셋 */
+@media (max-width: 640px) {
+  .carousel {
+    --carousel-gap: var(--sp-4);
+  }
+
+  .track > * {
+    flex: 0 0 86%;
+  }
+
+  .navBtn {
+    width: 34px;
+    height: 34px;
+  }
+
+  .navPrev {
+    left: var(--sp-2);
+  }
+
+  .navNext {
+    right: var(--sp-2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navBtn,
+  .navBtn:hover,
+  .navBtn:active {
+    transition: none;
+    transform: translateY(-50%);
+  }
+}

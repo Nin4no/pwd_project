@@ -1,0 +1,73 @@
+{
+  "id": "NYU1102",
+  "source": "roomVision.analyzeRoomPixels (heuristic baseline)",
+  "image": "data/NYU1102.jpg",
+  "room": {
+    "width_m": 2.6,
+    "depth_m": 3.8,
+    "height_m": 2.4
+  },
+  "openings": [
+    {
+      "type": "door",
+      "wall": "S",
+      "offset_m": 1.4,
+      "width_m": 0.9,
+      "height_m": 2
+    }
+  ],
+  "items": [
+    {
+      "category": "storage",
+      "size_m": [
+        0.5,
+        0.45,
+        0.7
+      ],
+      "pos_m": [
+        -0.25,
+        -1.7
+      ],
+      "rotation_deg": 0
+    },
+    {
+      "category": "storage",
+      "size_m": [
+        0.6,
+        0.45,
+        0.8
+      ],
+      "pos_m": [
+        0.3,
+        -1.7
+      ],
+      "rotation_deg": 0
+    },
+    {
+      "category": "storage",
+      "size_m": [
+        0.7,
+        0.35,
+        2.05
+      ],
+      "pos_m": [
+        0.95,
+        -1.75
+      ],
+      "rotation_deg": 0
+    },
+    {
+      "category": "storage",
+      "size_m": [
+        0.5,
+        0.45,
+        0.6
+      ],
+      "pos_m": [
+        -1.05,
+        -1.2
+      ],
+      "rotation_deg": 90
+    }
+  ]
+}

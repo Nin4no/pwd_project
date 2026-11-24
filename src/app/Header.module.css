@@ -1,0 +1,144 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-6);
+  height: var(--header-h);
+  padding: 0 var(--sp-6);
+  background: var(--surface-glass);
+  backdrop-filter: saturate(1.4) blur(12px);
+  -webkit-backdrop-filter: saturate(1.4) blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+.logo {
+  display: inline-flex;
+  align-items: center;
+  color: var(--text);
+  flex-shrink: 0;
+}
+.logoLockup {
+  display: block;
+  width: auto;
+  height: 38px;
+  object-fit: contain;
+}
+.nav {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  min-width: 0;
+}
+.link {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 var(--sp-3);
+  border-radius: var(--r-sm);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-sub);
+  white-space: nowrap;
+  transition:
+    background-color var(--dur) var(--ease-out),
+    color var(--dur) var(--ease-out);
+}
+.link:hover {
+  background: var(--grey-100);
+  color: var(--text);
+}
+.active {
+  color: var(--primary);
+}
+.active:hover {
+  color: var(--primary);
+}
+.side {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-left: auto;
+  min-width: 0;
+}
+.sync {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--fs-caption);
+  color: var(--text-sub);
+  white-space: nowrap;
+}
+.syncDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+.syncError {
+  color: var(--danger);
+}
+.syncError .syncDot {
+  background: var(--danger);
+}
+.user {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  max-width: 180px;
+  height: 36px;
+  padding: 0 var(--sp-3) 0 var(--sp-1);
+  border-radius: 18px;
+  background: var(--grey-100);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.user:hover {
+  background: var(--line);
+}
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: var(--fs-sub);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.userName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-width: 768px) {
+  .header {
+    gap: var(--sp-3);
+    padding: 0 var(--sp-4);
+  }
+  .logoLockup {
+    height: 30px;
+  }
+  .syncText {
+    display: none;
+  }
+}
+@media (max-width: 480px) {
+  .logoLockup {
+    height: 26px;
+  }
+  .link {
+    padding: 0 var(--sp-2);
+  }
+  .userName {
+    display: none;
+  }
+  .user {
+    padding: 0 var(--sp-1);
+  }
+}

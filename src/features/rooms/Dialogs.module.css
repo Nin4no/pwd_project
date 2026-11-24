@@ -1,0 +1,33 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding-top: var(--sp-2);
+}
+.summary {
+  font-size: var(--fs-sub);
+  color: var(--text-sub);
+}
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-2);
+}
+.warn {
+  padding: var(--sp-3);
+  border-radius: var(--r-sm);
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: var(--fs-sub);
+  line-height: 1.45;
+}
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--fs-sub);
+  color: var(--primary);
+}
+.infoTitle {
+  font-weight: 700;
+}

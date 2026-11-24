@@ -1,0 +1,111 @@
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  background: var(--scrim-soft);
+  cursor: default;
+  animation: fade var(--dur) var(--ease-out);
+}
+.panel {
+  position: fixed;
+  z-index: 901;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  cursor: default;
+  animation: slide-x var(--dur-sheet) var(--ease-drawer);
+}
+.panel:focus-visible {
+  outline: none;
+}
+.md {
+  max-width: 400px;
+}
+.lg {
+  max-width: 520px;
+}
+.grip {
+  display: none;
+}
+.head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-3);
+  padding: var(--sp-5) var(--sp-5) var(--sp-4);
+  border-bottom: 1px solid var(--line);
+}
+.titles {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+.title {
+  font-size: var(--fs-h3);
+  font-weight: 700;
+  letter-spacing: var(--ls-title);
+}
+.desc {
+  font-size: var(--fs-sub);
+  color: var(--text-sub);
+}
+.body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--sp-5);
+}
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sp-2);
+  padding: var(--sp-4) var(--sp-5);
+  padding-bottom: calc(var(--sp-4) + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--line);
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes slide-x {
+  from {
+    transform: translateX(100%);
+  }
+}
+@keyframes slide-y {
+  from {
+    transform: translateY(100%);
+  }
+}
+@media (max-width: 768px) {
+  .panel {
+    top: auto;
+    left: 0;
+    max-width: none;
+    max-height: 88dvh;
+    border-radius: var(--r-xl) var(--r-xl) 0 0;
+    animation-name: slide-y;
+  }
+  .grip {
+    display: block;
+    width: 36px;
+    height: 4px;
+    margin: var(--sp-2) auto 0;
+    border-radius: 2px;
+    background: var(--border-strong);
+  }
+  .head {
+    padding-top: var(--sp-3);
+  }
+  .footer > * {
+    flex: 1 1 0;
+  }
+}

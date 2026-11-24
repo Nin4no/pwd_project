@@ -1,0 +1,551 @@
+{
+  "timestamp": "2026-11-15T08:54:13.593Z",
+  "prediction_source": "eval/room/predictions/gemini",
+  "metrics": {
+    "tune": {
+      "scene_count": 12,
+      "measured_layout": {
+        "w_scenes": 3,
+        "mean_w_rel_err": 0.154,
+        "d_scenes": 3,
+        "mean_d_rel_err": 0.253,
+        "mean_wd_rel_err": 0.204
+      },
+      "visible_extent": {
+        "w_scenes": 9,
+        "mean_w_rel_err": 0.077,
+        "d_scenes": 9,
+        "mean_d_rel_err": 0.14,
+        "mean_wd_rel_err": 0.108
+      },
+      "measured_height": {
+        "scenes_evaluated": 8,
+        "scenes_excluded_default": 4,
+        "mean_h_rel_err": 0.336
+      },
+      "overall_room_rel_err": 0.132,
+      "furniture": {
+        "total_gt": 48,
+        "total_pred": 51,
+        "total_matched": 11,
+        "precision": 0.216,
+        "recall": 0.229,
+        "f1": 0.222,
+        "mean_pos_error_m": 0.545
+      },
+      "openings": {
+        "total_gt": 1,
+        "total_pred": 8,
+        "mean_wall_match_rate": 0.667
+      }
+    },
+    "holdout": {
+      "scene_count": 0,
+      "measured_layout": {
+        "w_scenes": 0,
+        "mean_w_rel_err": null,
+        "d_scenes": 0,
+        "mean_d_rel_err": null,
+        "mean_wd_rel_err": null
+      },
+      "visible_extent": {
+        "w_scenes": 0,
+        "mean_w_rel_err": null,
+        "d_scenes": 0,
+        "mean_d_rel_err": null,
+        "mean_wd_rel_err": null
+      },
+      "measured_height": {
+        "scenes_evaluated": 0,
+        "scenes_excluded_default": 0,
+        "mean_h_rel_err": null
+      },
+      "overall_room_rel_err": 0,
+      "furniture": {
+        "total_gt": 0,
+        "total_pred": 0,
+        "total_matched": 0,
+        "precision": 0,
+        "recall": 0,
+        "f1": 0,
+        "mean_pos_error_m": 0
+      },
+      "openings": {
+        "total_gt": 0,
+        "total_pred": 0,
+        "mean_wall_match_rate": 0
+      }
+    },
+    "all": {
+      "scene_count": 12,
+      "measured_layout": {
+        "w_scenes": 3,
+        "mean_w_rel_err": 0.154,
+        "d_scenes": 3,
+        "mean_d_rel_err": 0.253,
+        "mean_wd_rel_err": 0.204
+      },
+      "visible_extent": {
+        "w_scenes": 9,
+        "mean_w_rel_err": 0.077,
+        "d_scenes": 9,
+        "mean_d_rel_err": 0.14,
+        "mean_wd_rel_err": 0.108
+      },
+      "measured_height": {
+        "scenes_evaluated": 8,
+        "scenes_excluded_default": 4,
+        "mean_h_rel_err": 0.336
+      },
+      "overall_room_rel_err": 0.132,
+      "furniture": {
+        "total_gt": 48,
+        "total_pred": 51,
+        "total_matched": 11,
+        "precision": 0.216,
+        "recall": 0.229,
+        "f1": 0.222,
+        "mean_pos_error_m": 0.545
+      },
+      "openings": {
+        "total_gt": 1,
+        "total_pred": 8,
+        "mean_wall_match_rate": 0.667
+      }
+    }
+  },
+  "scene_results": [
+    {
+      "id": "NYU0079",
+      "split": "tune",
+      "scene_type": "bedroom",
+      "provenance": {
+        "w_source": "estimated_from_visible_extent",
+        "d_source": "estimated_from_visible_extent",
+        "h_source": "ground_truth_layout"
+      },
+      "room_error": {
+        "w_rel_err": 0.054,
+        "d_rel_err": 0.05,
+        "h_rel_err": 0.333,
+        "w_gt": 3.7,
+        "w_pred": 3.5,
+        "d_gt": 4,
+        "d_pred": 4.2,
+        "h_gt": 1.8,
+        "h_pred": 2.4000000000000004
+      },
+      "furniture": {
+        "gt_count": 4,
+        "pred_count": 3,
+        "matched_count": 2,
+        "precision": 0.667,
+        "recall": 0.5,
+        "f1": 0.571,
+        "mean_pos_error_m": 0.5
+      },
+      "openings": {
+        "gt_count": 0,
+        "pred_count": 0,
+        "matched_wall_count": 0,
+        "wall_match_rate": 1
+      }
+    },
+    {
+      "id": "NYU0082",
+      "split": "tune",
+      "scene_type": "bedroom",
+      "provenance": {
+        "w_source": "estimated_from_visible_extent",
+        "d_source": "ground_truth_layout",
+        "h_source": "ground_truth_layout"
+      },
+      "room_error": {
+        "w_rel_err": 0.047,
+        "d_rel_err": 0.393,
+        "h_rel_err": 0.2,
+        "w_gt": 3.2,
+        "w_pred": 3.0500000000000003,
+        "d_gt": 2.8,
+        "d_pred": 3.9000000000000004,
+        "h_gt": 2,
+        "h_pred": 2.4000000000000004
+      },
+      "furniture": {
+        "gt_count": 2,
+        "pred_count": 3,
+        "matched_count": 0,
+        "precision": 0,
+        "recall": 0,
+        "f1": 0,
+        "mean_pos_error_m": 0
+      },
+      "openings": {
+        "gt_count": 0,
+        "pred_count": 0,
+        "matched_wall_count": 0,
+        "wall_match_rate": 1
+      }
+    },
+    {
+      "id": "NYU0216",
+      "split": "tune",
+      "scene_type": "study",
+      "provenance": {
+        "w_source": "estimated_from_visible_extent",
+        "d_source": "estimated_from_visible_extent",
+        "h_source": "default"
+      },
+      "room_error": {
+        "w_rel_err": 0.333,
+        "d_rel_err": 0.267,
+        "h_rel_err": null,
+        "w_gt": 2.4,
+        "w_pred": 3.2,
+        "d_gt": 3,
+        "d_pred": 3.8000000000000003,
+        "h_gt": 2.4,
+        "h_pred": 2.7
+      },
+      "furniture": {
+        "gt_count": 2,
+        "pred_count": 3,
+        "matched_count": 0,
+        "precision": 0,
+        "recall": 0,
+        "f1": 0,
+        "mean_pos_error_m": 0
+      },
+      "openings": {
+        "gt_count": 0,
+        "pred_count": 0,
+        "matched_wall_count": 0,
+        "wall_match_rate": 1
+      }
+    },
+    {
+      "id": "NYU0454",
+      "split": "tune",
+      "scene_type": "study",
+      "provenance": {
+        "w_source": "estimated_from_visible_extent",
+        "d_source": "estimated_from_visible_extent",
+        "h_source": "default"
+      },
+      "room_error": {
+        "w_rel_err": 0.029,
+        "d_rel_err": 0.013,
+        "h_rel_err": null,
+        "w_gt": 3.4,
+        "w_pred": 3.5,
+        "d_gt": 3.8,
+        "d_pred": 3.75,
+        "h_gt": 2.4,
+        "h_pred": 2.5500000000000003
+      },
+      "furniture": {
+        "gt_count": 6,
+        "pred_count": 5,
+        "matched_count": 1,
+        "precision": 0.2,
+        "recall": 0.167,
+        "f1": 0.182,
+        "mean_pos_error_m": 0.652
+      },
+      "openings": {
+        "gt_count": 0,
+        "pred_count": 1,
+        "matched_wall_count": 0,
+        "wall_match_rate": 0.5
+      }
+    },
+    {
+      "id": "NYU0517",
+      "split": "tune",
+      "scene_type": "studio",
+      "provenance": {
+        "w_source": "ground_truth_layout",
+        "d_source": "ground_truth_layout",
+        "h_source": "ground_truth_layout"
+      },
+      "room_error": {
+        "w_rel_err": 0.209,
+        "d_rel_err": 0.083,
+        "h_rel_err": 0.316,
+        "w_gt": 4.3,
+        "w_pred": 3.4000000000000004,
+        "d_gt": 3.6,
+        "d_pred": 3.9000000000000004,
+        "h_gt": 1.9,
+        "h_pred": 2.5
+      },
+      "furniture": {
+        "gt_count": 3,
+        "pred_count": 4,
+        "matched_count": 0,
+        "precision": 0,
+        "recall": 0,
+        "f1": 0,
+        "mean_pos_error_m": 0
+      },
+      "openings": {
+        "gt_count": 0,
+        "pred_count": 1,
+        "matched_wall_count": 0,
+        "wall_match_rate": 0.5
+      }
+    },
+    {
+      "id": "NYU0592",
+      "split": "tune",
+      "scene_type": "living_room",
+      "provenance": {
+        "w_source": "estimated_from_visible_extent",
+        "d_source": "estimated_from_visible_extent",
+        "h_source": "ground_truth_layout"
+      },
+      "room_error": {
+        "w_rel_err": 0.044,
+        "d_rel_err": 0.024,
+        "h_rel_err": 0.289,
+        "w_gt": 3.4,
+        "w_pred": 3.5500000000000003,
+        "d_gt": 4.1,
+        "d_pred": 4,
+        "h_gt": 1.9,
+        "h_pred": 2.45
+      },
+      "furniture": {
+        "gt_count": 4,
+        "pred_count": 5,
+        "matched_count": 1,
+        "precision": 0.2,
+        "recall": 0.25,
+        "f1": 0.222,
+        "mean_pos_error_m": 0.658
+      },
+      "openings": {
+        "gt_count": 0,
+        "pred_count": 0,
+        "matched_wall_count": 0,
+        "wall_match_rate": 1
+      }
+    },
+    {
+      "id": "NYU0638",
+      "split": "tune",
+      "scene_type": "study",
+      "provenance": {
+        "w_source": "estimated_from_visible_extent",
+        "d_source": "estimated_from_visible_extent",
+        "h_source": "default"
+      },
+      "room_error": {
+        "w_rel_err": 0,
+        "d_rel_err": 0.45,
+        "h_rel_err": null,
+        "w_gt": 2.4,
+        "w_pred": 2.4000000000000004,
+        "d_gt": 4,
+        "d_pred": 2.2,
+        "h_gt": 2.4,
+        "h_pred": 2.3000000000000003
+      },
+      "furniture": {
+        "gt_count": 3,
+        "pred_count": 3,
+        "matched_count": 2,
+        "precision": 0.667,
+        "recall": 0.667,
+        "f1": 0.667,
+        "mean_pos_error_m": 0.414
+      },
+      "openings": {
+        "gt_count": 0,
+        "pred_count": 0,
+        "matched_wall_count": 0,
+        "wall_match_rate": 1
+      }
+    },
+    {
+      "id": "NYU0986",
+      "split": "tune",
+      "scene_type": "studio",
+      "provenance": {
+        "w_source": "estimated_from_visible_extent",
+        "d_source": "estimated_from_visible_extent",
+        "h_source": "default"
+      },
+      "room_error": {
+        "w_rel_err": 0.071,
+        "d_rel_err": 0.128,
+        "h_rel_err": null,
+        "w_gt": 3.5,
+        "w_pred": 3.75,
+        "d_gt": 4.7,
+        "d_pred": 4.1000000000000005,
+        "h_gt": 2.4,
+        "h_pred": 2.5
+      },
+      "furniture": {
+        "gt_count": 6,
+        "pred_count": 6,
+        "matched_count": 1,
+        "precision": 0.167,
+        "recall": 0.167,
+        "f1": 0.167,
+        "mean_pos_error_m": 0.492
+      },
+      "openings": {
+        "gt_count": 0,
+        "pred_count": 1,
+        "matched_wall_count": 0,
+        "wall_match_rate": 0.5
+      }
+    },
+    {
+      "id": "NYU1071",
+      "split": "tune",
+      "scene_type": "bedroom",
+      "provenance": {
+        "w_source": "ground_truth_layout",
+        "d_source": "estimated_from_visible_extent",
+        "h_source": "ground_truth_layout"
+      },
+      "room_error": {
+        "w_rel_err": 0.047,
+        "d_rel_err": 0.118,
+        "h_rel_err": 0.531,
+        "w_gt": 4.3,
+        "w_pred": 4.1000000000000005,
+        "d_gt": 5.5,
+        "d_pred": 4.8500000000000005,
+        "h_gt": 1.6,
+        "h_pred": 2.45
+      },
+      "furniture": {
+        "gt_count": 3,
+        "pred_count": 4,
+        "matched_count": 1,
+        "precision": 0.25,
+        "recall": 0.333,
+        "f1": 0.286,
+        "mean_pos_error_m": 0.781
+      },
+      "openings": {
+        "gt_count": 0,
+        "pred_count": 1,
+        "matched_wall_count": 0,
+        "wall_match_rate": 0.5
+      }
+    },
+    {
+      "id": "NYU1102",
+      "split": "tune",
+      "scene_type": "studio",
+      "provenance": {
+        "w_source": "estimated_from_visible_extent",
+        "d_source": "estimated_from_visible_extent",
+        "h_source": "ground_truth_layout"
+      },
+      "room_error": {
+        "w_rel_err": 0.112,
+        "d_rel_err": 0.089,
+        "h_rel_err": 0.333,
+        "w_gt": 4,
+        "w_pred": 3.5500000000000003,
+        "d_gt": 4.5,
+        "d_pred": 4.1000000000000005,
+        "h_gt": 1.8,
+        "h_pred": 2.4000000000000004
+      },
+      "furniture": {
+        "gt_count": 6,
+        "pred_count": 6,
+        "matched_count": 3,
+        "precision": 0.5,
+        "recall": 0.5,
+        "f1": 0.5,
+        "mean_pos_error_m": 0.317
+      },
+      "openings": {
+        "gt_count": 1,
+        "pred_count": 2,
+        "matched_wall_count": 0,
+        "wall_match_rate": 0
+      }
+    },
+    {
+      "id": "NYU1232",
+      "split": "tune",
+      "scene_type": "living_room",
+      "provenance": {
+        "w_source": "estimated_from_visible_extent",
+        "d_source": "estimated_from_visible_extent",
+        "h_source": "ground_truth_layout"
+      },
+      "room_error": {
+        "w_rel_err": 0,
+        "d_rel_err": 0.118,
+        "h_rel_err": 0.4,
+        "w_gt": 4.1,
+        "w_pred": 4.1000000000000005,
+        "d_gt": 5.1,
+        "d_pred": 4.5,
+        "h_gt": 1.75,
+        "h_pred": 2.45
+      },
+      "furniture": {
+        "gt_count": 6,
+        "pred_count": 6,
+        "matched_count": 0,
+        "precision": 0,
+        "recall": 0,
+        "f1": 0,
+        "mean_pos_error_m": 0
+      },
+      "openings": {
+        "gt_count": 0,
+        "pred_count": 1,
+        "matched_wall_count": 0,
+        "wall_match_rate": 0.5
+      }
+    },
+    {
+      "id": "NYU1235",
+      "split": "tune",
+      "scene_type": "living_room",
+      "provenance": {
+        "w_source": "ground_truth_layout",
+        "d_source": "ground_truth_layout",
+        "h_source": "ground_truth_layout"
+      },
+      "room_error": {
+        "w_rel_err": 0.207,
+        "d_rel_err": 0.283,
+        "h_rel_err": 0.289,
+        "w_gt": 4.1,
+        "w_pred": 3.25,
+        "d_gt": 5.3,
+        "d_pred": 3.8000000000000003,
+        "h_gt": 1.9,
+        "h_pred": 2.45
+      },
+      "furniture": {
+        "gt_count": 3,
+        "pred_count": 3,
+        "matched_count": 0,
+        "precision": 0,
+        "recall": 0,
+        "f1": 0,
+        "mean_pos_error_m": 0
+      },
+      "openings": {
+        "gt_count": 0,
+        "pred_count": 1,
+        "matched_wall_count": 0,
+        "wall_match_rate": 0.5
+      }
+    }
+  ]
+}

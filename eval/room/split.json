@@ -1,0 +1,72 @@
+{
+  "description": "Room vision 3D evaluation dataset split (24 indoor scenes)",
+  "rules": {
+    "tune": "Used for heuristic parameter tuning, threshold calibration, and development feedback.",
+    "holdout": "Strictly prohibited from tuning. Used exclusively for final unbiased generalization evaluation."
+  },
+  "summary": {
+    "total": 24,
+    "tune_count": 12,
+    "holdout_count": 12,
+    "categories_per_split": {
+      "bedroom": 3,
+      "living_room": 3,
+      "study": 3,
+      "studio": 3
+    }
+  },
+  "tune": [
+    "NYU0082",
+    "NYU0079",
+    "NYU1071",
+    "NYU1235",
+    "NYU1232",
+    "NYU0592",
+    "NYU0454",
+    "NYU0638",
+    "NYU0216",
+    "NYU0986",
+    "NYU0517",
+    "NYU1102"
+  ],
+  "holdout": [
+    "NYU1035",
+    "NYU0965",
+    "NYU1110",
+    "NYU1281",
+    "NYU1276",
+    "NYU0632",
+    "NYU0629",
+    "NYU0455",
+    "NYU0391",
+    "NYU0991",
+    "NYU0172",
+    "NYU1032"
+  ],
+  "scene_types": {
+    "NYU0082": "bedroom",
+    "NYU0079": "bedroom",
+    "NYU1071": "bedroom",
+    "NYU1035": "bedroom",
+    "NYU0965": "bedroom",
+    "NYU1110": "bedroom",
+    "NYU1235": "living_room",
+    "NYU1232": "living_room",
+    "NYU0592": "living_room",
+    "NYU1281": "living_room",
+    "NYU1276": "living_room",
+    "NYU0632": "living_room",
+    "NYU0454": "study",
+    "NYU0638": "study",
+    "NYU0216": "study",
+    "NYU0629": "study",
+    "NYU0455": "study",
+    "NYU0391": "study",
+    "NYU0986": "studio",
+    "NYU0517": "studio",
+    "NYU1102": "studio",
+    "NYU0991": "studio",
+    "NYU0172": "studio",
+    "NYU1032": "studio"
+  }
+}

@@ -1,0 +1,20 @@
+[
+  { "prompt": "타공판 선반", "category": "storage", "expectKind": "pegboard" },
+  { "prompt": "벽선반", "category": "storage", "expectKind": "wall_shelf" },
+  { "prompt": "철제 선반", "category": "storage", "expectKind": "steel_rack" },
+  { "prompt": "스틸랙", "category": "storage", "expectKind": "steel_rack" },
+  { "prompt": "신발장", "category": "storage", "expectKind": "shoe_cabinet" },
+  { "prompt": "TV장", "category": "storage", "expectKind": "tv_stand" },
+  { "prompt": "화장대", "category": "storage", "expectKind": "vanity" },
+  { "prompt": "협탁", "category": "storage", "expectKind": "nightstand" },
+  { "prompt": "벤치", "category": "seating", "expectKind": "bench" },
+  { "prompt": "스툴", "category": "seating", "expectKind": "stool" },
+  { "prompt": "2층 침대", "category": "bed", "expectKind": "bunk_bed" },
+  { "prompt": "접이식 테이블", "category": "table", "expectKind": "folding_table" },
+  { "prompt": "독서실 책상", "category": "desk", "expectKind": "study_desk" },
+  { "prompt": "책장형 책상", "category": "desk", "expectKind": "hutch_desk" },
+  { "prompt": "선반 달린 책상", "category": "desk", "expectKind": "hutch_desk" },
+  { "prompt": "캣타워", "category": "storage", "expectKind": "unknown" },
+  { "prompt": "해먹", "category": "storage", "expectKind": "unknown" },
+  { "prompt": "피아노", "category": "storage", "expectKind": "unknown" }
+]

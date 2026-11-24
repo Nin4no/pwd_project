@@ -1,0 +1,107 @@
+:root {
+  /* 토스 블루 — 주요 행동(로그인·도면 그리기·새 방 만들기) 강조 */
+  --brand: #0064FF;
+  --brand-dark: #0050CC;
+  --brand-ink: #ffffff;
+  --font-sans: 'Pretendard Variable', 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, -apple-system, sans-serif;
+  /* 치수·평수·좌표 숫자 전용 (설계도 느낌). 한글은 Pretendard로 대체 */
+  --font-mono: 'JetBrains Mono', 'Pretendard Variable', ui-monospace, Consolas, monospace;
+  /* Toss Spatial Design Tokens (원본 색감 동기화) */
+  --primary: #3D6FB8;
+  --primary-dark: #2F5A99;
+  --primary-soft: #EEF3FA;
+  --accent: #3D6FB8;
+  --accent-soft: #EEF3FA;
+  --cyan: #06b6d4;
+
+  /* Text 3-tier hierarchy */
+  --text: #191F28;
+  --text-sub: #4E5968;
+  --ink: #191F28;
+  --ink-hover: #4E5968;
+  --muted: #8B95A1;
+
+  /* Surfaces & Backgrounds */
+  --bg: #FFFFFF;
+  /* 페이지 바탕 종이: 순백 컴포넌트와 구분되도록 아주 옅은 블루그레이 */
+  --paper: #F2F5F9;
+  /* 일반 페이지 바탕(히어로 아래) — 원본 하늘색 */
+  --page-bg: #AFDDEC;
+  --grey-100: #F2F4F6;
+  --surface: #FFFFFF;
+  --surface-sub: #F9FAFB;
+  --surface-glass: rgba(255, 255, 255, 0.88);
+
+  /* Borders & Blueprint Grid Lines */
+  --border: #DCE2EA;
+  --border-strong: #D1D6DB;
+  --line: #E5E8EB;
+  --grid-minor: rgba(61, 111, 184, 0.06);
+  --grid-major: rgba(61, 111, 184, 0.12);
+  --dim-ink: #7A93B8;
+
+  /* Semantics */
+  --danger: #F04452;
+  --danger-soft: #FFEEEE;
+  --success: #03B26C;
+
+  /* 오버레이 딤 (모달 .32 / 시트·드로어 .24) */
+  --scrim: rgba(16, 32, 64, 0.32);
+  --scrim-soft: rgba(16, 32, 64, 0.24);
+  /* 소셜 로그인 브랜드 — 버튼 배경/테두리에만 사용 */
+  --brand-naver: #03C75A;
+  --brand-naver-ink: #FFFFFF;
+
+  /* Spacing Scale (4/8px multiples) */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-7: 32px;
+
+  /* Radii */
+  --r-sm: 8px;
+  --radius: 12px;
+  --r-lg: 16px;
+  --r-xl: 24px;
+
+  /* Shadows (soft diffuse diffusion instead of heavy borders) */
+  --shadow-sm: 0 1px 2px rgba(16, 32, 64, 0.06), 0 4px 12px rgba(16, 32, 64, 0.05);
+  --shadow: 0 2px 4px rgba(16, 32, 64, 0.05), 0 10px 28px rgba(16, 32, 64, 0.09);
+  --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.12);
+
+  /* Typography scale */
+  --fs-display: 28px;
+  --fs-title: 22px;
+  --fs-h3: 18px;
+  --fs-body: 15px;
+  --fs-sub: 13px;
+  --fs-caption: 12px;
+
+  /* Letter Spacing tokens */
+  --ls-tight: -0.025em;
+  --ls-title: -0.02em;
+  --ls-body: -0.01em;
+
+  /* Motion & Duration */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease: cubic-bezier(0.23, 1, 0.32, 1);
+  --dur-fast: 120ms;
+  --dur: 180ms;
+  --dur-modal: 220ms;
+  --dur-sheet: 260ms;
+
+  --header-h: 64px;
+  /* 스튜디오 상단 막대 — 2D/3D 전환 버튼 주변 여백 확보 */
+  --studio-bar-h: 70px;
+
+  font-family: var(--font-sans);
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: var(--ls-body);
+}

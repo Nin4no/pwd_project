@@ -1,0 +1,146 @@
+{
+  "id": "NYU0986",
+  "source": "SUN RGB-D (NYUv2)",
+  "license": "Princeton Custom Academic License (Non-commercial research)",
+  "image": "data/NYU0986.jpg",
+  "scene_type": "studio",
+  "cameraIntrinsics": {
+    "fx": 518.85,
+    "fy": 518.85,
+    "cx": 284,
+    "cy": 208,
+    "width": 561,
+    "height": 427
+  },
+  "room": {
+    "width_m": 3.5,
+    "depth_m": 4.7,
+    "height_m": 2.4,
+    "provenance": {
+      "width_m": "estimated_from_visible_extent",
+      "depth_m": "estimated_from_visible_extent",
+      "height_m": "default"
+    }
+  },
+  "openings": [],
+  "items": [
+    {
+      "category": "bed",
+      "size_m": [
+        1.7,
+        1.05,
+        0.8
+      ],
+      "pos_m": [
+        0.7,
+        0.3
+      ],
+      "rotation_deg": 180,
+      "provenance": {
+        "category": "ground_truth_label",
+        "size_m": "ground_truth_bbox",
+        "pos_m": "ground_truth_bbox",
+        "rotation_deg": "ground_truth_bbox"
+      }
+    },
+    {
+      "category": "lighting",
+      "size_m": [
+        0.5,
+        0.45,
+        0.7
+      ],
+      "pos_m": [
+        -0.9,
+        -1.55
+      ],
+      "rotation_deg": 0,
+      "provenance": {
+        "category": "ground_truth_label",
+        "size_m": "ground_truth_bbox",
+        "pos_m": "ground_truth_bbox",
+        "rotation_deg": "ground_truth_bbox"
+      }
+    },
+    {
+      "category": "seating",
+      "size_m": [
+        0.4,
+        0.3,
+        0.5
+      ],
+      "pos_m": [
+        -1.35,
+        -1.6
+      ],
+      "rotation_deg": -90,
+      "provenance": {
+        "category": "ground_truth_label",
+        "size_m": "ground_truth_bbox",
+        "pos_m": "ground_truth_bbox",
+        "rotation_deg": "ground_truth_bbox"
+      }
+    },
+    {
+      "category": "table",
+      "size_m": [
+        1.25,
+        0.75,
+        0.9
+      ],
+      "pos_m": [
+        -0.55,
+        -1.45
+      ],
+      "rotation_deg": 0,
+      "provenance": {
+        "category": "ground_truth_label",
+        "size_m": "ground_truth_bbox",
+        "pos_m": "ground_truth_bbox",
+        "rotation_deg": "ground_truth_bbox"
+      }
+    },
+    {
+      "category": "seating",
+      "size_m": [
+        0.65,
+        0.6,
+        0.9
+      ],
+      "pos_m": [
+        -0.65,
+        -1
+      ],
+      "rotation_deg": 0,
+      "provenance": {
+        "category": "ground_truth_label",
+        "size_m": "ground_truth_bbox",
+        "pos_m": "ground_truth_bbox",
+        "rotation_deg": "ground_truth_bbox"
+      }
+    },
+    {
+      "category": "storage",
+      "size_m": [
+        0.9,
+        0.4,
+        2.2
+      ],
+      "pos_m": [
+        0.85,
+        -1.45
+      ],
+      "rotation_deg": 0,
+      "provenance": {
+        "category": "ground_truth_label",
+        "size_m": "ground_truth_bbox",
+        "pos_m": "ground_truth_bbox",
+        "rotation_deg": "ground_truth_bbox"
+      }
+    }
+  ],
+  "missing": [
+    "openings.window",
+    "openings.door"
+  ]
+}

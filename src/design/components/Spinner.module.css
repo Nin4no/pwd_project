@@ -1,0 +1,47 @@
+.wrap {
+  display: inline-flex;
+}
+.spinner {
+  display: inline-block;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border-style: solid;
+  border-color: var(--line);
+  animation: spin 720ms linear infinite;
+}
+.primary {
+  border-top-color: var(--primary);
+}
+.current {
+  border-color: currentColor;
+  border-right-color: transparent;
+  border-bottom-color: transparent;
+  opacity: 0.85;
+}
+.sm {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+}
+.md {
+  width: 24px;
+  height: 24px;
+  border-width: 2.5px;
+}
+.lg {
+  width: 36px;
+  height: 36px;
+  border-width: 3px;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* 스피너는 진행 표시이므로 감속만 하고 멈추지 않음 */
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation-duration: 1.6s !important;
+    animation-iteration-count: infinite !important;
+  }
+}

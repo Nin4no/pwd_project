@@ -1,0 +1,113 @@
+{
+  "id": "NYU0455",
+  "source": "roomVision.analyzeRoomPixels (heuristic baseline)",
+  "image": "data/NYU0455.jpg",
+  "room": {
+    "width_m": 2.7,
+    "depth_m": 3,
+    "height_m": 2.4
+  },
+  "openings": [
+    {
+      "type": "window",
+      "wall": "N",
+      "offset_m": 1,
+      "width_m": 1.7,
+      "height_m": 2
+    },
+    {
+      "type": "window",
+      "wall": "E",
+      "offset_m": 1,
+      "width_m": 0.6,
+      "height_m": 1.2
+    },
+    {
+      "type": "door",
+      "wall": "S",
+      "offset_m": 1.5,
+      "width_m": 0.9,
+      "height_m": 2
+    }
+  ],
+  "items": [
+    {
+      "category": "desk",
+      "size_m": [
+        0.9,
+        0.65,
+        1.15
+      ],
+      "pos_m": [
+        -0.9,
+        -1.15
+      ],
+      "rotation_deg": 0
+    },
+    {
+      "category": "desk",
+      "size_m": [
+        0.9,
+        0.65,
+        1.25
+      ],
+      "pos_m": [
+        0.9,
+        -1.15
+      ],
+      "rotation_deg": 0
+    },
+    {
+      "category": "desk",
+      "size_m": [
+        0.9,
+        0.65,
+        1.05
+      ],
+      "pos_m": [
+        -1.05,
+        -0.35
+      ],
+      "rotation_deg": 90
+    },
+    {
+      "category": "lighting",
+      "size_m": [
+        0.35,
+        0.35,
+        1.35
+      ],
+      "pos_m": [
+        1.2,
+        0
+      ],
+      "rotation_deg": -90
+    },
+    {
+      "category": "storage",
+      "size_m": [
+        0.5,
+        0.45,
+        0.9
+      ],
+      "pos_m": [
+        1.15,
+        -0.45
+      ],
+      "rotation_deg": -90
+    },
+    {
+      "category": "lighting",
+      "size_m": [
+        0.35,
+        0.35,
+        1.4
+      ],
+      "pos_m": [
+        0.3,
+        -1.3
+      ],
+      "rotation_deg": 0
+    }
+  ]
+}

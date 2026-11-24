@@ -1,0 +1,40 @@
+.region {
+  position: fixed;
+  z-index: 1100;
+  left: 50%;
+  bottom: calc(var(--sp-7) + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  width: max-content;
+  max-width: calc(100vw - var(--sp-7));
+  pointer-events: none;
+}
+.toast {
+  padding: var(--sp-3) var(--sp-5);
+  border-radius: var(--radius);
+  background: var(--text);
+  color: var(--surface);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
+  box-shadow: var(--shadow);
+  text-align: center;
+  overflow-wrap: anywhere;
+  animation: rise var(--dur) var(--ease-out);
+}
+.default {
+  border-left: 0;
+}
+.success {
+  border-left: 3px solid var(--success);
+}
+.error {
+  background: var(--danger);
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}

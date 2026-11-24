@@ -1,0 +1,312 @@
+{
+  "mode": "baseline",
+  "count": 30,
+  "validationPassRate": 1,
+  "retryCount": 0,
+  "averageParts": 8.033333333333333,
+  "bboxValidRate": 1,
+  "floatingParts": 0,
+  "categoryMatchRate": 0.9,
+  "rows": [
+    {
+      "prompt": "싱글 침대 100x200",
+      "category": "bed",
+      "matched": true,
+      "valid": true,
+      "retries": 0,
+      "parts": 6,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "원목 책상 120x60x75",
+      "category": "desk",
+      "matched": true,
+      "valid": true,
+      "retries": 0,
+      "parts": 8,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "3단 책장",
+      "category": "storage",
+      "matched": true,
+      "valid": true,
+      "retries": 0,
+      "parts": 11,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "L자 코너 소파",
+      "category": "seating",
+      "matched": true,
+      "valid": true,
+      "retries": 0,
+      "parts": 11,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "원형 식탁",
+      "category": "table",
+      "matched": true,
+      "valid": true,
+      "retries": 0,
+      "parts": 3,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "아치 플로어 램프",
+      "category": "lighting",
+      "matched": true,
+      "valid": true,
+      "retries": 0,
+      "parts": 9,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "큰 창문",
+      "category": "window",
+      "matched": true,
+      "valid": true,
+      "retries": 0,
+      "parts": 5,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "미닫이문",
+      "category": "door",
+      "matched": true,
+      "valid": true,
+      "retries": 0,
+      "parts": 5,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "원형 3단 회전 책장",
+      "category": "storage",
+      "matched": true,
+      "valid": true,
+      "retries": 0,
+      "parts": 11,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "L자 코너 소파",
+      "category": "seating",
+      "matched": true,
+      "valid": true,
+      "retries": 0,
+      "parts": 11,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "캣타워 겸 책장",
+      "category": "storage",
+      "matched": true,
+      "valid": true,
+      "retries": 0,
+      "parts": 12,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "곡선형 독서 의자",
+      "category": "seating",
+      "matched": true,
+      "valid": true,
+      "retries": 0,
+      "parts": 5,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "벽걸이 접이식 식탁",
+      "category": "table",
+      "matched": true,
+      "valid": true,
+      "retries": 0,
+      "parts": 5,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "수납 계단형 침대",
+      "category": "bed",
+      "matched": true,
+      "valid": true,
+      "retries": 0,
+      "parts": 6,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "육각형 커피 테이블",
+      "category": "table",
+      "matched": true,
+      "valid": true,
+      "retries": 0,
+      "parts": 5,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "구름 모양 스툴",
+      "category": "seating",
+      "matched": true,
+      "valid": true,
+      "retries": 0,
+      "parts": 5,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "파도 형태 책장",
+      "category": "storage",
+      "matched": true,
+      "valid": true,
+      "retries": 0,
+      "parts": 12,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "둥근 모서리 게이밍 책상",
+      "category": "desk",
+      "matched": true,
+      "valid": true,
+      "retries": 0,
+      "parts": 12,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "2층 고양이 침대",
+      "category": "bed",
+      "matched": true,
+      "valid": true,
+      "retries": 0,
+      "parts": 6,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "나선형 스탠드 조명",
+      "category": "lighting",
+      "matched": true,
+      "valid": true,
+      "retries": 0,
+      "parts": 4,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "퀸 침대",
+      "category": "bed",
+      "matched": true,
+      "valid": true,
+      "retries": 0,
+      "parts": 7,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "모션 데스크",
+      "category": "desk",
+      "matched": true,
+      "valid": true,
+      "retries": 0,
+      "parts": 8,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "옷장",
+      "category": "storage",
+      "matched": true,
+      "valid": true,
+      "retries": 0,
+      "parts": 11,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "벤치 의자",
+      "category": "seating",
+      "matched": true,
+      "valid": true,
+      "retries": 0,
+      "parts": 5,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "협탁",
+      "category": "table",
+      "matched": false,
+      "valid": true,
+      "retries": 0,
+      "parts": 14,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "책상 조명",
+      "category": "lighting",
+      "matched": false,
+      "valid": true,
+      "retries": 0,
+      "parts": 8,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "미닫이 창",
+      "category": "window",
+      "matched": false,
+      "valid": true,
+      "retries": 0,
+      "parts": 11,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "현관문",
+      "category": "door",
+      "matched": true,
+      "valid": true,
+      "retries": 0,
+      "parts": 5,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "벽 선반",
+      "category": "storage",
+      "matched": true,
+      "valid": true,
+      "retries": 0,
+      "parts": 9,
+      "bboxValid": true,
+      "floating": 0
+    },
+    {
+      "prompt": "원목 벤치형 수납장",
+      "category": "storage",
+      "matched": true,
+      "valid": true,
+      "retries": 0,
+      "parts": 11,
+      "bboxValid": true,
+      "floating": 0
+    }
+  ]
+}

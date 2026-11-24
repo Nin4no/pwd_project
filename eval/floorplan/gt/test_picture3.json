@@ -1,0 +1,33 @@
+{
+  "_comment": "2D 평면도(분양 도면) 정답. 방 사진 평가(eval/room)와 별도로 '평면도 → 방' 정확도를 측정. 치수 단위 m.",
+  "id": "test_picture3",
+  "kind": "floorplan",
+  "source": "Local user test image (test_picture/test_picture3.jpg) — 경기행복주택 17C 분양 평면도",
+  "license": "Private / Course Assignment",
+  "image": "test_picture/test_picture3.jpg",
+  "orientation": "도면 위쪽(현관) = N, 아래쪽(거실 창) = S, 오른쪽(주방) = E, 왼쪽(욕실) = W",
+  "room": {
+    "area_m2": 17.4867,
+    "width_m": 2.68,
+    "depth_m": 6.53,
+    "height_m": null,
+    "provenance": {
+      "area_m2": "official_label (전용면적, 벽 중심선 기준)",
+      "width_m": "derived_from_area_and_plan_ratio (외벽 중심선 픽셀 168:410, 오차 약 ±0.15m)",
+      "depth_m": "derived_from_area_and_plan_ratio (외벽 중심선 픽셀 168:410, 오차 약 ±0.15m)",
+      "height_m": "unknown (평면도에 없음 — 채점 제외)"
+    }
+  },
+  "openings": [
+    { "type": "door", "wall": "N", "offset_m": 1.33, "width_m": 0.85, "height_m": null, "provenance": "estimated_from_plan_scale (현관문)" },
+    { "type": "window", "wall": "S", "offset_m": 0.88, "width_m": 1.44, "height_m": null, "provenance": "estimated_from_plan_scale (거실 창)" }
+  ],
+  "zones": [
+    { "name": "욕실", "wall": "W", "position": "북서쪽" },
+    { "name": "현관", "wall": "N", "position": "북동쪽" },
+    { "name": "주방/식당", "wall": "E", "position": "동쪽 중앙" },
+    { "name": "거실", "wall": "S", "position": "남쪽" },
+    { "name": "보일러실", "wall": "E", "position": "남동쪽 모서리" }
+  ],
+  "tolerance": { "area_rel": 0.05, "dim_abs_m": 0.15, "opening_offset_abs_m": 0.3 }
+}

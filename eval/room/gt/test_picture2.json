@@ -1,0 +1,47 @@
+{
+  "_comment": "test_picture2 정답 템플릿: 실제 실측값 또는 3D 도면 측정값을 입력하세요. (치수 단위: 미터 m, 각도: 도 deg)",
+  "id": "test_picture2",
+  "source": "Local user test image (test_picture/test_picture2.jpg)",
+  "license": "Private / Course Assignment",
+  "image": "test_picture/test_picture2.jpg",
+  "cameraIntrinsics": {
+    "_comment": "스마트폰 메인 카메라 EXIF 초점거리 및 이미지 해상도 (모를 경우 null 가능)",
+    "fx": null,
+    "fy": null,
+    "cx": null,
+    "cy": null,
+    "width": null,
+    "height": null
+  },
+  "room": {
+    "_comment": "방 전체 실측 치수 (m)",
+    "width_m": null,
+    "depth_m": null,
+    "height_m": null
+  },
+  "openings": [
+    {
+      "_comment": "창문/문: type은 'window' | 'door', wall은 'N'(사진안쪽벽) | 'E'(우측벽) | 'S'(카메라쪽벽) | 'W'(좌측벽)",
+      "type": null,
+      "wall": null,
+      "offset_m": null,
+      "width_m": null,
+      "height_m": null
+    }
+  ],
+  "items": [
+    {
+      "_comment": "가구: category는 'bed' | 'desk' | 'storage' | 'seating' | 'table' | 'lighting' | 'other'",
+      "category": null,
+      "size_m": [null, null, null],
+      "pos_m": [null, null],
+      "rotation_deg": null
+    }
+  ],
+  "missing": [
+    "cameraIntrinsics",
+    "room.width_m",
+    "room.depth_m",
+    "room.height_m"
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "id": "NYU1035",
+  "source": "SUN RGB-D (NYUv2)",
+  "license": "Princeton Custom Academic License (Non-commercial research)",
+  "image": "data/NYU1035.jpg",
+  "scene_type": "bedroom",
+  "cameraIntrinsics": {
+    "fx": 518.85,
+    "fy": 518.85,
+    "cx": 284,
+    "cy": 208,
+    "width": 561,
+    "height": 427
+  },
+  "room": {
+    "width_m": 3.8,
+    "depth_m": 3.7,
+    "height_m": 1.95,
+    "provenance": {
+      "width_m": "estimated_from_visible_extent",
+      "depth_m": "estimated_from_visible_extent",
+      "height_m": "ground_truth_layout"
+    }
+  },
+  "openings": [],
+  "items": [
+    {
+      "category": "bed",
+      "size_m": [
+        1.35,
+        1.1,
+        1
+      ],
+      "pos_m": [
+        1.05,
+        -0.85
+      ],
+      "rotation_deg": 180,
+      "provenance": {
+        "category": "ground_truth_label",
+        "size_m": "ground_truth_bbox",
+        "pos_m": "ground_truth_bbox",
+        "rotation_deg": "ground_truth_bbox"
+      }
+    },
+    {
+      "category": "storage",
+      "size_m": [
+        1.05,
+        0.45,
+        1
+      ],
+      "pos_m": [
+        -1.2,
+        0.3
+      ],
+      "rotation_deg": 90,
+      "provenance": {
+        "category": "ground_truth_label",
+        "size_m": "ground_truth_bbox",
+        "pos_m": "ground_truth_bbox",
+        "rotation_deg": "ground_truth_bbox"
+      }
+    }
+  ],
+  "missing": [
+    "openings.window",
+    "openings.door"
+  ]
+}

@@ -1,0 +1,32 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 var(--sp-2);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  letter-spacing: 0;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.neutral {
+  background: var(--grey-100);
+  color: var(--text-sub);
+}
+.info,
+.ai {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.ai {
+  font-family: var(--font-mono);
+}
+.danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.success {
+  background: var(--grey-100);
+  color: var(--success);
+}

@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GLB Furniture Viewer - Design Your Room</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #ffffff;
+      color: #1f2937;
+    }
+    #canvas-container {
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+    .hud-card {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(8px);
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 16px 20px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      max-width: 360px;
+      font-size: 13px;
+      line-height: 1.6;
+      z-index: 10;
+      transition: opacity 0.2s;
+    }
+    .hud-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #111827;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 600;
+      background: #eff6ff;
+      color: #2563eb;
+    }
+    .badge-success { background: #ecfdf5; color: #059669; }
+    .badge-warning { background: #fffbeb; color: #d97706; }
+    .metric-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+      border-bottom: 1px dashed #f3f4f6;
+      padding-bottom: 2px;
+    }
+    .metric-label { color: #6b7280; }
+    .metric-value { font-weight: 600; color: #111827; font-feature-settings: "tnum"; }
+    .file-select-bar {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(8px);
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 8px 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+    select, button {
+      font-family: inherit;
+      font-size: 13px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+      background: #ffffff;
+      color: #374151;
+      cursor: pointer;
+    }
+    select:focus, button:focus {
+      outline: 2px solid #3b82f6;
+    }
+    #loading-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(255, 255, 255, 0.9);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+      font-size: 14px;
+      color: #4b5563;
+      gap: 12px;
+    }
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid #e5e7eb;
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .hidden { display: none !important; }
+    /* shot=1 고정 촬영 모드 시 불필요 UI 숨김 */
+    body.shot-mode .file-select-bar { display: none !important; }
+  </style>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="loading-overlay">
+    <div class="spinner"></div>
+    <div id="loading-text">GLB 모델을 불러오는 중...</div>
+  </div>
+
+  <div class="hud-card" id="hud">
+    <div class="hud-title">
+      <span id="title-text">가구 3D 모델</span>
+      <span class="badge" id="category-badge">선반</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-label">파일명</span>
+      <span class="metric-value" id="val-file">-</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-label">목표 치수 (W × D × H)</span>
+      <span class="metric-value" id="val-target">-</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-label">원본 치수 (W × D × H)</span>
+      <span class="metric-value" id="val-raw">-</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-label">정규화 스케일 (Sx/Sy/Sz)</span>
+      <span class="metric-value" id="val-scale">-</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-label">바닥 정렬 (Y 오프셋)</span>
+      <span class="metric-value" id="val-floor">-</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-label">정점 / 삼각형 수</span>
+      <span class="metric-value" id="val-poly">-</span>
+    </div>
+    <div class="metric-row">
+      <span class="metric-label">반듯함 (10° 축정렬 면적비)</span>
+      <span class="metric-value" id="val-straight">-</span>
+    </div>
+  </div>
+
+  <div class="file-select-bar">
+    <label for="file-select">모델 선택:</label>
+    <select id="file-select">
+      <option value="poc/1_sample_shelf.glb">1_sample_shelf.glb (선반)</option>
+      <option value="poc/3_sample_bookcase.glb">3_sample_bookcase.glb (책장)</option>
+      <option value="poc/1_A.glb">1_A.glb</option>
+      <option value="poc/2_A.glb">2_A.glb</option>
+      <option value="poc/3_A.glb">3_A.glb</option>
+      <option value="poc/4_A.glb">4_A.glb</option>
+      <option value="poc/5_A.glb">5_A.glb</option>
+    </select>
+    <button id="btn-toggle-box" title="바운딩 박스 토글">박스 On/Off</button>
+  </div>
+
+  <div id="canvas-container"></div>
+
+  <script type="module">
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+    // 1. URL 쿼리 파라미터 파싱
+    const params = new URLSearchParams(window.location.search);
+    const fileParam = params.get('file') || 'poc/1_sample_shelf.glb';
+    const isShotMode = params.get('shot') === '1';
+
+    if (isShotMode) {
+      document.body.classList.add('shot-mode');
+    }
+
+    // 프리픽스별 목표 규격 표 (가로 w, 깊이 d, 높이 h m)
+    const TARGET_SPECS = {
+      1: { name: '선반', w: 1.0, d: 0.3, h: 1.2 },
+      2: { name: '냉장고', w: 0.6, d: 0.68, h: 1.8 },
+      3: { name: '책장', w: 0.8, d: 0.3, h: 1.6 },
+      4: { name: '식탁', w: 1.2, d: 0.75, h: 0.74 },
+      5: { name: '소파', w: 0.85, d: 0.85, h: 0.8 },
+    };
+
+    function getTargetSpec(filePath) {
+      if (params.get('target')) {
+        const [w, d, h] = params.get('target').split(',').map(Number);
+        return { name: '사용자지정', w, d, h };
+      }
+      const fileName = filePath.split('/').pop() || '';
+      const match = fileName.match(/^([1-5])[\b_-]/) || fileName.match(/^([1-5])/);
+      if (match) {
+        const p = parseInt(match[1], 10);
+        return TARGET_SPECS[p] || { name: '가구', w: 1.0, d: 1.0, h: 1.0 };
+      }
+      return { name: '가구', w: 1.0, d: 1.0, h: 1.0 };
+    }
+
+    function resolveModelUrl(filePath) {
+      if (!filePath) return 'poc/1_sample_shelf.glb';
+      if (filePath.startsWith('http://') || filePath.startsWith('https://') || filePath.startsWith('blob:') || filePath.startsWith('data:')) {
+        return filePath;
+      }
+      if (filePath.startsWith('/')) return filePath;
+      // eval/furniture/ 경로에서 서빙될 때 eval/furniture/ 접두사 자동 보정
+      if (window.location.pathname.includes('/eval/furniture/') && filePath.startsWith('eval/furniture/')) {
+        return filePath.replace(/^eval\/furniture\//, '');
+      }
+      // 파일명만 전달된 경우 (예: 1_sample_shelf.glb) poc/ 자동 보정
+      if (!filePath.includes('/')) {
+        return 'poc/' + filePath;
+      }
+      return filePath;
+    }
+
+    // 2. Three.js 씬, 카메라, 렌더러 초기화
+    const container = document.getElementById('canvas-container');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xffffff);
+
+    const camera = new THREE.PerspectiveCamera(
+      45,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      100
+    );
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.0;
+    container.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.maxPolarAngle = Math.PI / 2 - 0.02; // 바닥 아래로 카메라 이동 방지
+
+    // 3. 조명 설정 (흰색 배경에 입체감 부여)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+    scene.add(ambientLight);
+
+    const mainLight = new THREE.DirectionalLight(0xffffff, 1.3);
+    mainLight.position.set(5, 10, 7);
+    mainLight.castShadow = true;
+    mainLight.shadow.mapSize.width = 2048;
+    mainLight.shadow.mapSize.height = 2048;
+    mainLight.shadow.bias = -0.0001;
+    scene.add(mainLight);
+
+    const fillLight = new THREE.DirectionalLight(0xeef2ff, 0.5);
+    fillLight.position.set(-6, 6, -6);
+    scene.add(fillLight);
+
+    // 4. 바닥 1m 격자 (GridHelper)
+    const gridHelper = new THREE.GridHelper(10, 10, 0x9ca3af, 0xe5e7eb);
+    gridHelper.position.y = 0;
+    scene.add(gridHelper);
+
+    // 5. 박스 헬퍼 및 모델 컨테이너
+    let modelGroup = new THREE.Group();
+    scene.add(modelGroup);
+    let boxHelper = null;
+
+    // UI 요소
+    const selectElem = document.getElementById('file-select');
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const valFile = document.getElementById('val-file');
+    const valTarget = document.getElementById('val-target');
+    const valRaw = document.getElementById('val-raw');
+    const valScale = document.getElementById('val-scale');
+    const valFloor = document.getElementById('val-floor');
+    const valPoly = document.getElementById('val-poly');
+    const valStraight = document.getElementById('val-straight');
+    const catBadge = document.getElementById('category-badge');
+
+    // 드롭다운 현재 값 동기화
+    for (let i = 0; i < selectElem.options.length; i++) {
+      if (selectElem.options[i].value === fileParam) {
+        selectElem.selectedIndex = i;
+        break;
+      }
+    }
+    selectElem.addEventListener('change', (e) => {
+      const newFile = e.target.value;
+      const url = new URL(window.location.href);
+      url.searchParams.set('file', newFile);
+      window.location.href = url.toString();
+    });
+
+    document.getElementById('btn-toggle-box').addEventListener('click', () => {
+      if (boxHelper) boxHelper.visible = !boxHelper.visible;
+    });
+
+    // 6. 모델 로드 및 정규화
+    function loadModel(path) {
+      loadingOverlay.classList.remove('hidden');
+      const targetSpec = getTargetSpec(path);
+      catBadge.textContent = targetSpec.name;
+      valFile.textContent = path.split('/').pop();
+      valTarget.textContent = `${targetSpec.w} × ${targetSpec.d} × ${targetSpec.h}m`;
+
+      // 기존 객체 정리
+      while (modelGroup.children.length > 0) {
+        modelGroup.remove(modelGroup.children[0]);
+      }
+      if (boxHelper) {
+        scene.remove(boxHelper);
+        boxHelper = null;
+      }
+
+      const loader = new GLTFLoader();
+      loader.load(
+        path,
+        (gltf) => {
+          const rawModel = gltf.scene;
+
+          // 정점 수, 삼각형 수, 반듯함 측정
+          let vCount = 0;
+          let tCount = 0;
+          let totalArea = 0;
+          let alignedArea = 0;
+          const cos10 = Math.cos((10 * Math.PI) / 180);
+
+          const vA = new THREE.Vector3();
+          const vB = new THREE.Vector3();
+          const vC = new THREE.Vector3();
+          const e1 = new THREE.Vector3();
+          const e2 = new THREE.Vector3();
+          const n = new THREE.Vector3();
+
+          rawModel.updateWorldMatrix(true, true);
+          rawModel.traverse((child) => {
+            if (child.isMesh && child.geometry) {
+              child.castShadow = true;
+              child.receiveShadow = true;
+              const geom = child.geometry;
+              const pos = geom.attributes.position;
+              if (pos) vCount += pos.count;
+
+              const idx = geom.index;
+              const triCount = idx ? idx.count / 3 : (pos ? pos.count / 3 : 0);
+              tCount += Math.floor(triCount);
+
+              for (let t = 0; t < triCount; t++) {
+                const i0 = idx ? idx.getX(3 * t) : 3 * t;
+                const i1 = idx ? idx.getX(3 * t + 1) : 3 * t + 1;
+                const i2 = idx ? idx.getX(3 * t + 2) : 3 * t + 2;
+
+                vA.fromBufferAttribute(pos, i0).applyMatrix4(child.matrixWorld);
+                vB.fromBufferAttribute(pos, i1).applyMatrix4(child.matrixWorld);
+                vC.fromBufferAttribute(pos, i2).applyMatrix4(child.matrixWorld);
+
+                e1.subVectors(vB, vA);
+                e2.subVectors(vC, vA);
+                n.crossVectors(e1, e2);
+                const len = n.length();
+                if (len < 1e-10) continue;
+                const area = 0.5 * len;
+                totalArea += area;
+                n.multiplyScalar(1 / len);
+                if (Math.max(Math.abs(n.x), Math.abs(n.y), Math.abs(n.z)) >= cos10) {
+                  alignedArea += area;
+                }
+              }
+            }
+          });
+
+          // 원본 AABB 계산
+          const rawBbox = new THREE.Box3().setFromObject(rawModel);
+          const rawSize = new THREE.Vector3();
+          rawBbox.getSize(rawSize);
+
+          valRaw.textContent = `${rawSize.x.toFixed(2)} × ${rawSize.z.toFixed(2)} × ${rawSize.y.toFixed(2)}m`;
+          valPoly.textContent = `${vCount.toLocaleString()} / ${tCount.toLocaleString()}`;
+
+          const straightRatio = totalArea > 0 ? alignedArea / totalArea : 0;
+          valStraight.textContent = `${(straightRatio * 100).toFixed(1)}% (${straightRatio.toFixed(3)})`;
+
+          // 정규화 스케일 계산: X=w, Y=h, Z=d
+          const sx = targetSpec.w / Math.max(rawSize.x, 1e-6);
+          const sy = targetSpec.h / Math.max(rawSize.y, 1e-6);
+          const sz = targetSpec.d / Math.max(rawSize.z, 1e-6);
+
+          valScale.textContent = `${sx.toFixed(2)} / ${sy.toFixed(2)} / ${sz.toFixed(2)}`;
+
+          rawModel.scale.set(sx, sy, sz);
+          rawModel.updateWorldMatrix(true, true);
+
+          // 바닥(Y=0) 정렬 및 수평 중앙 정렬
+          const scaledBbox = new THREE.Box3().setFromObject(rawModel);
+          const yOffset = -scaledBbox.min.y;
+          valFloor.textContent = `+${yOffset.toFixed(3)}m (Y=0 맞춤)`;
+
+          rawModel.position.set(
+            -(scaledBbox.min.x + scaledBbox.max.x) / 2,
+            yOffset,
+            -(scaledBbox.min.z + scaledBbox.max.z) / 2
+          );
+          modelGroup.add(rawModel);
+
+          // 바운딩 박스 와이어프레임 표시
+          boxHelper = new THREE.Box3Helper(
+            new THREE.Box3().setFromObject(rawModel),
+            0x3b82f6
+          );
+          scene.add(boxHelper);
+
+          // 카메라 시점 설정
+          const centerY = targetSpec.h / 2;
+          controls.target.set(0, centerY, 0);
+
+          if (isShotMode) {
+            // 헤드리스 스크린샷용 고정 3/4 시점
+            camera.position.set(2.4, Math.max(1.6, centerY * 1.5), 2.4);
+            controls.enabled = false;
+          } else {
+            camera.position.set(2.5, Math.max(1.8, centerY * 1.6), 2.5);
+          }
+          camera.lookAt(0, centerY, 0);
+          controls.update();
+
+          loadingOverlay.classList.add('hidden');
+          // 스크린샷 캡처 신호 플래그
+          document.body.setAttribute('data-ready', 'true');
+          window.__READY_FOR_SHOT__ = true;
+        },
+        undefined,
+        (err) => {
+          console.error('Failed to load GLB:', err);
+          document.getElementById('loading-text').innerHTML =
+            `<span style="color:#ef4444;font-weight:600;">로드 실패:</span> ${path}<br><small style="color:#6b7280;">metrics.ts --sample로 샘플을 먼저 생성해주세요.</small>`;
+        }
+      );
+    }
+
+    loadModel(resolveModelUrl(fileParam));
+
+    // 7. 렌더 루프 및 리사이즈 처리
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      if (controls.enabled) controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
+</html>

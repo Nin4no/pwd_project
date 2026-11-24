@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="517" height="565" viewBox="0 0 517 565" style="background:#ffffff;font-family:system-ui,-apple-system,sans-serif">
+<text x="12" y="18" font-size="13" font-weight="700" fill="#0f172a">square_35x35__home_office — 정사각 3.5×3.5m / home_office</text>
+<text x="12" y="34" font-size="11" fill="#475569">placed 5/5 | col=0 | doorInt=0 | winBlk=0 | frontBlk=0 | path=70cm | wallSnap=3/3 | 47.3ms</text>
+<polygon points="66.0,106.0 451.0,106.0 451.0,491.0 66.0,491.0" fill="#f8fafc" stroke="none"/>
+<polygon points="398.2,405.2 244.2,405.2 244.2,339.2 398.2,339.2" fill="rgba(56,189,248,0.08)" stroke="#38bdf8" stroke-width="1" stroke-dasharray="3,2"/>
+<polygon points="288.2,388.7 354.2,388.7 354.2,454.7 288.2,454.7" fill="rgba(56,189,248,0.08)" stroke="#38bdf8" stroke-width="1" stroke-dasharray="3,2"/>
+<polygon points="74.8,147.8 162.8,147.8 162.8,213.8 74.8,213.8" fill="rgba(56,189,248,0.08)" stroke="#38bdf8" stroke-width="1" stroke-dasharray="3,2"/>
+<polygon points="162.8,164.3 250.8,164.3 250.8,230.3 162.8,230.3" fill="rgba(56,189,248,0.08)" stroke="#38bdf8" stroke-width="1" stroke-dasharray="3,2"/>
+<polygon points="59.4,99.4 457.6,99.4 457.6,112.6 59.4,112.6" fill="#334155"/>
+<polygon points="457.6,99.4 457.6,497.6 444.4,497.6 444.4,99.4" fill="#334155"/>
+<polygon points="457.6,497.6 59.4,497.6 59.4,484.4 457.6,484.4" fill="#334155"/>
+<polygon points="59.4,497.6 59.4,99.4 72.6,99.4 72.6,497.6" fill="#334155"/>
+<polygon points="242.0,484.4 143.0,484.4 143.0,385.4 242.0,385.4" fill="rgba(217,119,6,0.14)" stroke="#d97706" stroke-width="1.5" stroke-dasharray="5,3"/>
+<polygon points="242.0,496.9 143.0,496.9 143.0,485.1 242.0,485.1" fill="#fde68a" fill-opacity="0.82" stroke="#1e293b" stroke-width="1.2"/>
+<text x="192.5" y="491.0" font-size="9" font-weight="600" text-anchor="middle" dy="-3" fill="#0f172a" stroke="#ffffff" stroke-width="2.2" paint-order="stroke">door-wood</text>
+<text x="192.5" y="491.0" font-size="8" text-anchor="middle" dy="9" fill="#334155" stroke="#ffffff" stroke-width="2" paint-order="stroke">-180°</text>
+<polygon points="398.2,482.2 244.2,482.2 244.2,405.2 398.2,405.2" fill="#f2f2f2" fill-opacity="0.82" stroke="#1e293b" stroke-width="1.2"/>
+<line x1="321.2" y1="443.7" x2="321.2" y2="409.1" stroke="#0f172a" stroke-width="1.8"/>
+<polygon points="321.2,409.1 326.7,417.9 315.7,417.9" fill="#0f172a"/>
+<text x="321.2" y="443.7" font-size="9" font-weight="600" text-anchor="middle" dy="-3" fill="#0f172a" stroke="#ffffff" stroke-width="2.2" paint-order="stroke">desk-motion</text>
+<text x="321.2" y="443.7" font-size="8" text-anchor="middle" dy="9" fill="#334155" stroke="#ffffff" stroke-width="2" paint-order="stroke">-180°</text>
+<polygon points="288.2,322.7 354.2,322.7 354.2,388.7 288.2,388.7" fill="#1f2937" fill-opacity="0.82" stroke="#1e293b" stroke-width="1.2"/>
+<line x1="321.2" y1="355.7" x2="321.2" y2="385.4" stroke="#0f172a" stroke-width="1.8"/>
+<polygon points="321.2,385.4 315.7,376.6 326.7,376.6" fill="#0f172a"/>
+<text x="321.2" y="355.7" font-size="9" font-weight="600" text-anchor="middle" dy="-3" fill="#0f172a" stroke="#ffffff" stroke-width="2.2" paint-order="stroke">chair</text>
+<text x="321.2" y="355.7" font-size="8" text-anchor="middle" dy="9" fill="#334155" stroke="#ffffff" stroke-width="2" paint-order="stroke">0°</text>
+<polygon points="74.8,114.8 162.8,114.8 162.8,147.8 74.8,147.8" fill="#d8c3a5" fill-opacity="0.82" stroke="#1e293b" stroke-width="1.2"/>
+<line x1="118.8" y1="131.3" x2="118.8" y2="155.5" stroke="#0f172a" stroke-width="1.8"/>
+<polygon points="118.8,155.5 113.3,146.7 124.3,146.7" fill="#0f172a"/>
+<text x="118.8" y="131.3" font-size="9" font-weight="600" text-anchor="middle" dy="-3" fill="#0f172a" stroke="#ffffff" stroke-width="2.2" paint-order="stroke">shelf</text>
+<text x="118.8" y="131.3" font-size="8" text-anchor="middle" dy="9" fill="#334155" stroke="#ffffff" stroke-width="2" paint-order="stroke">0°</text>
+<polygon points="162.8,114.8 250.8,114.8 250.8,164.3 162.8,164.3" fill="#efe6da" fill-opacity="0.82" stroke="#1e293b" stroke-width="1.2"/>
+<line x1="206.8" y1="139.6" x2="206.8" y2="163.8" stroke="#0f172a" stroke-width="1.8"/>
+<polygon points="206.8,163.8 201.3,154.9 212.3,154.9" fill="#0f172a"/>
+<text x="206.8" y="139.6" font-size="9" font-weight="600" text-anchor="middle" dy="-3" fill="#0f172a" stroke="#ffffff" stroke-width="2.2" paint-order="stroke">drawer</text>
+<text x="206.8" y="139.6" font-size="8" text-anchor="middle" dy="9" fill="#334155" stroke="#ffffff" stroke-width="2" paint-order="stroke">0°</text>
+<polygon points="414.4,115.4 441.7,142.6 414.4,169.8 387.2,142.6" fill="#fde68a" fill-opacity="0.82" stroke="#1e293b" stroke-width="1.2"/>
+<line x1="414.4" y1="142.6" x2="397.3" y2="159.7" stroke="#0f172a" stroke-width="1.8"/>
+<polygon points="397.3,159.7 399.6,149.6 407.4,157.4" fill="#0f172a"/>
+<text x="414.4" y="142.6" font-size="9" font-weight="600" text-anchor="middle" dy="-3" fill="#0f172a" stroke="#ffffff" stroke-width="2.2" paint-order="stroke">lamp-floor</text>
+<text x="414.4" y="142.6" font-size="8" text-anchor="middle" dy="9" fill="#334155" stroke="#ffffff" stroke-width="2" paint-order="stroke">-45°</text>
+</svg>

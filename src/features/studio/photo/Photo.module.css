@@ -1,0 +1,137 @@
+/* 사진 → 방 위저드·보정 단계. 색·간격은 토큰만 */
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin: 0 0 var(--sp-4);
+  padding: 0;
+  list-style: none;
+}
+.stepDot {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  font-size: var(--fs-caption);
+  color: var(--muted);
+}
+.stepDot span {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--surface-sub);
+  font-family: var(--font-mono);
+}
+.stepDot[aria-current='step'] {
+  color: var(--text);
+  font-weight: 600;
+}
+.stepDot[aria-current='step'] span {
+  background: var(--primary);
+  color: var(--surface);
+}
+.step,
+.calibBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.calibBody {
+  padding-top: var(--sp-3);
+}
+.drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-5);
+  border: 2px dashed var(--border);
+  border-radius: var(--r-lg);
+  background: var(--surface-sub);
+  text-align: center;
+  transition: border-color var(--dur-fast) var(--ease);
+}
+.drop[data-over] {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+.preview {
+  display: block;
+  max-width: 100%;
+  max-height: 46vh;
+  border-radius: var(--radius);
+  object-fit: contain;
+}
+.pickWrap {
+  position: relative;
+  align-self: center;
+  max-width: 100%;
+  cursor: crosshair;
+  user-select: none;
+}
+.overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.poly {
+  fill: var(--primary-soft);
+  fill-opacity: 0.4;
+  stroke: var(--primary);
+  stroke-width: 0.6;
+  vector-effect: non-scaling-stroke;
+}
+.dot {
+  fill: var(--primary);
+  stroke: var(--surface);
+  stroke-width: 0.4;
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--sp-2);
+}
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-1);
+}
+.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-7) 0;
+}
+.sub {
+  font-size: var(--fs-sub);
+  color: var(--text-sub);
+}
+.error {
+  font-size: var(--fs-sub);
+  color: var(--danger);
+}
+.warn {
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  font-size: var(--fs-sub);
+}
+.stats {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--sp-1) var(--sp-4);
+  margin: 0;
+  font-size: var(--fs-sub);
+}
+.stats dt {
+  color: var(--text-sub);
+}
+.stats dd {
+  margin: 0;
+  font-family: var(--font-mono);
+}

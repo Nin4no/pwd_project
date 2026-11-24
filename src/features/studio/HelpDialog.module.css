@@ -1,0 +1,331 @@
+/* 편집 화면 온보딩 슬라이드 설명서. 색·간격·모션은 tokens.css만 사용 */
+.dialog.dialog {
+  max-width: 860px;
+  height: min(700px, calc(100dvh - var(--sp-7)));
+}
+
+.viewport {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.slide {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+.partHead {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--sp-2);
+}
+
+.partEyebrowRow {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  padding: 2px var(--sp-3);
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
+  border-radius: 999px;
+  background: var(--primary-soft);
+}
+
+.partEyebrow {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-caption);
+  font-weight: 700;
+  color: var(--primary-dark);
+}
+
+.partDivider {
+  color: var(--dim-ink);
+  font-size: var(--fs-caption);
+  line-height: 1;
+}
+
+.counter {
+  flex: none;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  color: var(--dim-ink);
+}
+
+.partTitle {
+  font-size: var(--fs-h3);
+  font-weight: 700;
+  letter-spacing: var(--ls-title);
+  color: var(--text);
+}
+
+/* 스튜디오 화면 구역 미니 설계도 (자연스러운 창 비율 유지, 과도한 가로·세로 늘어남 방지) */
+.diagram {
+  flex: none;
+  width: 100%;
+  max-width: 512px;
+  height: 116px;
+  margin-inline: auto;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(to right, var(--grid-minor) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-minor) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+.zoneTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  padding: var(--sp-1) var(--sp-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.zoneBody {
+  display: grid;
+  grid-template-columns: 82px 1fr 88px;
+  gap: var(--sp-2);
+  min-height: 0;
+  height: 100%;
+}
+
+.zoneSide,
+.zoneDock {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  text-align: center;
+  padding: 2px var(--sp-1);
+}
+
+.zoneCanvasWrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--muted);
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  min-width: 0;
+}
+
+.zoneCanvasWrap .zoneDock {
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: block;
+  max-width: calc(100% - 8px);
+  height: 18px;
+  padding: 0 var(--sp-2);
+  border-radius: 999px;
+  background: var(--paper);
+  font-size: var(--fs-caption);
+  line-height: 16px;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.zoneActive,
+.zoneCanvasWrap .zoneDock.zoneActive {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary-dark);
+}
+
+/* 온보딩 가이드 카드 그리드 */
+.cards {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-3);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-sub);
+}
+
+.cardTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  font-size: var(--fs-sub);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.cardTag {
+  flex: none;
+  padding: 2px var(--sp-2);
+  border-radius: var(--r-sm);
+  background: var(--primary-soft);
+  color: var(--primary-dark);
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  font-weight: 600;
+}
+
+.cardDesc {
+  font-size: var(--fs-sub);
+  color: var(--text-sub);
+  line-height: 1.55;
+}
+
+.shortcutSection {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-sub);
+}
+
+.shortcutLabel {
+  font-size: var(--fs-caption);
+  font-weight: 700;
+  color: var(--text-sub);
+}
+
+.shortcutGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sp-1) var(--sp-5);
+}
+
+.shortcutItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  padding: 2px 0;
+  font-size: var(--fs-caption);
+  color: var(--text-sub);
+}
+
+.shortcutItem kbd {
+  flex: none;
+  padding: 2px var(--sp-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  font-weight: 600;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  width: 100%;
+}
+
+.dots {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: var(--border-strong);
+  cursor: pointer;
+  transition: width var(--dur-fast) var(--ease-out), background-color var(--dur-fast) var(--ease-out);
+}
+
+.dot[aria-current='step'] {
+  width: 22px;
+  background: var(--primary);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .dot:not([aria-current='step']):hover {
+    background: var(--dim-ink);
+  }
+}
+
+@media (max-width: 640px) {
+  .dialog.dialog {
+    height: min(640px, calc(100dvh - var(--sp-7)));
+  }
+  .diagram {
+    height: 112px;
+  }
+  .zoneTop {
+    flex-wrap: wrap;
+    white-space: normal;
+  }
+  .cards {
+    grid-template-columns: 1fr;
+  }
+  .shortcutGrid {
+    grid-template-columns: 1fr;
+  }
+  .zoneBody {
+    grid-template-columns: 54px 1fr 56px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dot {
+    transition: none;
+  }
+}

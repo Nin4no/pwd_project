@@ -1,0 +1,193 @@
+{
+  "id": "NYU0172",
+  "source": "SUN RGB-D (NYUv2)",
+  "license": "Princeton Custom Academic License (Non-commercial research)",
+  "image": "data/NYU0172.jpg",
+  "scene_type": "studio",
+  "cameraIntrinsics": {
+    "fx": 518.85,
+    "fy": 518.85,
+    "cx": 284,
+    "cy": 208,
+    "width": 561,
+    "height": 427
+  },
+  "room": {
+    "width_m": 6,
+    "depth_m": 7.2,
+    "height_m": 3,
+    "provenance": {
+      "width_m": "ground_truth_layout",
+      "depth_m": "ground_truth_layout",
+      "height_m": "ground_truth_layout"
+    }
+  },
+  "openings": [
+    {
+      "type": "door",
+      "wall": "W",
+      "offset_m": 3.8,
+      "width_m": 0.85,
+      "height_m": 2.6,
+      "height_source": "ground_truth",
+      "provenance": {
+        "wall": "estimated_nearest_wall",
+        "offset_m": "estimated_along_wall",
+        "width_m": "ground_truth_bbox",
+        "height_m": "ground_truth"
+      }
+    },
+    {
+      "type": "door",
+      "wall": "E",
+      "offset_m": 4,
+      "width_m": 1.25,
+      "height_m": 2.6,
+      "height_source": "ground_truth",
+      "provenance": {
+        "wall": "estimated_nearest_wall",
+        "offset_m": "estimated_along_wall",
+        "width_m": "ground_truth_bbox",
+        "height_m": "ground_truth"
+      }
+    }
+  ],
+  "items": [
+    {
+      "category": "seating",
+      "size_m": [
+        1.6,
+        0.9,
+        0.75
+      ],
+      "pos_m": [
+        -2.05,
+        1.9
+      ],
+      "rotation_deg": 90,
+      "provenance": {
+        "category": "ground_truth_label",
+        "size_m": "ground_truth_bbox",
+        "pos_m": "ground_truth_bbox",
+        "rotation_deg": "ground_truth_bbox"
+      }
+    },
+    {
+      "category": "storage",
+      "size_m": [
+        1,
+        0.45,
+        1.05
+      ],
+      "pos_m": [
+        -1.2,
+        -1.9
+      ],
+      "rotation_deg": 90,
+      "provenance": {
+        "category": "ground_truth_label",
+        "size_m": "ground_truth_bbox",
+        "pos_m": "ground_truth_bbox",
+        "rotation_deg": "ground_truth_bbox"
+      }
+    },
+    {
+      "category": "bed",
+      "size_m": [
+        1.85,
+        1.15,
+        0.75
+      ],
+      "pos_m": [
+        0.25,
+        -1.25
+      ],
+      "rotation_deg": 90,
+      "provenance": {
+        "category": "ground_truth_label",
+        "size_m": "ground_truth_bbox",
+        "pos_m": "ground_truth_bbox",
+        "rotation_deg": "ground_truth_bbox"
+      }
+    },
+    {
+      "category": "seating",
+      "size_m": [
+        0.8,
+        0.8,
+        0.75
+      ],
+      "pos_m": [
+        -0.4,
+        1.35
+      ],
+      "rotation_deg": -90,
+      "provenance": {
+        "category": "ground_truth_label",
+        "size_m": "ground_truth_bbox",
+        "pos_m": "ground_truth_bbox",
+        "rotation_deg": "ground_truth_bbox"
+      }
+    },
+    {
+      "category": "seating",
+      "size_m": [
+        0.75,
+        0.65,
+        0.65
+      ],
+      "pos_m": [
+        -0.7,
+        2.6
+      ],
+      "rotation_deg": 90,
+      "provenance": {
+        "category": "ground_truth_label",
+        "size_m": "ground_truth_bbox",
+        "pos_m": "ground_truth_bbox",
+        "rotation_deg": "ground_truth_bbox"
+      }
+    },
+    {
+      "category": "table",
+      "size_m": [
+        0.6,
+        0.55,
+        0.5
+      ],
+      "pos_m": [
+        -0.5,
+        2.05
+      ],
+      "rotation_deg": 90,
+      "provenance": {
+        "category": "ground_truth_label",
+        "size_m": "ground_truth_bbox",
+        "pos_m": "ground_truth_bbox",
+        "rotation_deg": "ground_truth_bbox"
+      }
+    },
+    {
+      "category": "storage",
+      "size_m": [
+        0.9,
+        0.4,
+        1.85
+      ],
+      "pos_m": [
+        -1.9,
+        0.75
+      ],
+      "rotation_deg": 0,
+      "provenance": {
+        "category": "ground_truth_label",
+        "size_m": "ground_truth_bbox",
+        "pos_m": "ground_truth_bbox",
+        "rotation_deg": "ground_truth_bbox"
+      }
+    }
+  ],
+  "missing": [
+    "openings.window"
+  ]
+}

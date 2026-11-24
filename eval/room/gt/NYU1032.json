@@ -1,0 +1,117 @@
+{
+  "id": "NYU1032",
+  "source": "SUN RGB-D (NYUv2)",
+  "license": "Princeton Custom Academic License (Non-commercial research)",
+  "image": "data/NYU1032.jpg",
+  "scene_type": "studio",
+  "cameraIntrinsics": {
+    "fx": 518.85,
+    "fy": 518.85,
+    "cx": 284,
+    "cy": 208,
+    "width": 561,
+    "height": 427
+  },
+  "room": {
+    "width_m": 3.6,
+    "depth_m": 4.4,
+    "height_m": 2.1,
+    "provenance": {
+      "width_m": "estimated_from_visible_extent",
+      "depth_m": "estimated_from_visible_extent",
+      "height_m": "ground_truth_layout"
+    }
+  },
+  "openings": [
+    {
+      "type": "door",
+      "wall": "N",
+      "offset_m": 1.05,
+      "width_m": 0.75,
+      "height_m": 1.9,
+      "height_source": "ground_truth",
+      "provenance": {
+        "wall": "estimated_nearest_wall",
+        "offset_m": "estimated_along_wall",
+        "width_m": "ground_truth_bbox",
+        "height_m": "ground_truth"
+      }
+    },
+    {
+      "type": "door",
+      "wall": "W",
+      "offset_m": 0,
+      "width_m": 0.6,
+      "height_m": 1.9,
+      "height_source": "ground_truth",
+      "provenance": {
+        "wall": "ground_truth_layout",
+        "offset_m": "estimated_along_wall",
+        "width_m": "ground_truth_bbox",
+        "height_m": "ground_truth"
+      }
+    }
+  ],
+  "items": [
+    {
+      "category": "bed",
+      "size_m": [
+        2.05,
+        1.15,
+        0.9
+      ],
+      "pos_m": [
+        0.6,
+        -0.9
+      ],
+      "rotation_deg": 90,
+      "provenance": {
+        "category": "ground_truth_label",
+        "size_m": "ground_truth_bbox",
+        "pos_m": "ground_truth_bbox",
+        "rotation_deg": "ground_truth_bbox"
+      }
+    },
+    {
+      "category": "desk",
+      "size_m": [
+        1.3,
+        0.3,
+        0.95
+      ],
+      "pos_m": [
+        -0.65,
+        1.15
+      ],
+      "rotation_deg": 180,
+      "provenance": {
+        "category": "ground_truth_label",
+        "size_m": "ground_truth_bbox",
+        "pos_m": "ground_truth_bbox",
+        "rotation_deg": "ground_truth_bbox"
+      }
+    },
+    {
+      "category": "seating",
+      "size_m": [
+        0.6,
+        0.45,
+        0.95
+      ],
+      "pos_m": [
+        -0.65,
+        0.9
+      ],
+      "rotation_deg": 90,
+      "provenance": {
+        "category": "ground_truth_label",
+        "size_m": "ground_truth_bbox",
+        "pos_m": "ground_truth_bbox",
+        "rotation_deg": "ground_truth_bbox"
+      }
+    }
+  ],
+  "missing": [
+    "openings.window"
+  ]
+}

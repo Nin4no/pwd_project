@@ -1,0 +1,89 @@
+{
+  "id": "NYU1235",
+  "source": "SUN RGB-D (NYUv2)",
+  "license": "Princeton Custom Academic License (Non-commercial research)",
+  "image": "data/NYU1235.jpg",
+  "scene_type": "living_room",
+  "cameraIntrinsics": {
+    "fx": 518.85,
+    "fy": 518.85,
+    "cx": 284,
+    "cy": 208,
+    "width": 561,
+    "height": 427
+  },
+  "room": {
+    "width_m": 4.1,
+    "depth_m": 5.3,
+    "height_m": 1.9,
+    "provenance": {
+      "width_m": "ground_truth_layout",
+      "depth_m": "ground_truth_layout",
+      "height_m": "ground_truth_layout"
+    }
+  },
+  "openings": [],
+  "items": [
+    {
+      "category": "table",
+      "size_m": [
+        0.7,
+        0.4,
+        0.6
+      ],
+      "pos_m": [
+        0.05,
+        1.1
+      ],
+      "rotation_deg": 0,
+      "provenance": {
+        "category": "ground_truth_label",
+        "size_m": "ground_truth_bbox",
+        "pos_m": "ground_truth_bbox",
+        "rotation_deg": "ground_truth_bbox"
+      }
+    },
+    {
+      "category": "seating",
+      "size_m": [
+        1.8,
+        0.85,
+        0.85
+      ],
+      "pos_m": [
+        -0.95,
+        0.85
+      ],
+      "rotation_deg": 0,
+      "provenance": {
+        "category": "ground_truth_label",
+        "size_m": "ground_truth_bbox",
+        "pos_m": "ground_truth_bbox",
+        "rotation_deg": "ground_truth_bbox"
+      }
+    },
+    {
+      "category": "storage",
+      "size_m": [
+        0.95,
+        0.35,
+        1.2
+      ],
+      "pos_m": [
+        1.4,
+        0.1
+      ],
+      "rotation_deg": 0,
+      "provenance": {
+        "category": "ground_truth_label",
+        "size_m": "ground_truth_bbox",
+        "pos_m": "ground_truth_bbox",
+        "rotation_deg": "ground_truth_bbox"
+      }
+    }
+  ],
+  "missing": [
+    "openings.window",
+    "openings.door"
+  ]
+}

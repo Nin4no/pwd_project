@@ -1,0 +1,100 @@
+{
+  "id": "NYU1110",
+  "source": "roomVision.analyzeRoomPixels (heuristic baseline)",
+  "image": "data/NYU1110.jpg",
+  "room": {
+    "width_m": 2.8,
+    "depth_m": 3.8,
+    "height_m": 2.4
+  },
+  "openings": [
+    {
+      "type": "window",
+      "wall": "N",
+      "offset_m": 2.05,
+      "width_m": 1.1,
+      "height_m": 1.2
+    },
+    {
+      "type": "window",
+      "wall": "W",
+      "offset_m": 2.15,
+      "width_m": 0.6,
+      "height_m": 1.2
+    },
+    {
+      "type": "door",
+      "wall": "S",
+      "offset_m": 1.1,
+      "width_m": 0.9,
+      "height_m": 2
+    }
+  ],
+  "items": [
+    {
+      "category": "storage",
+      "size_m": [
+        0.5,
+        0.45,
+        0.8
+      ],
+      "pos_m": [
+        -1.15,
+        0.35
+      ],
+      "rotation_deg": 90
+    },
+    {
+      "category": "storage",
+      "size_m": [
+        0.6,
+        0.7,
+        1.65
+      ],
+      "pos_m": [
+        -1.05,
+        -0.2
+      ],
+      "rotation_deg": 90
+    },
+    {
+      "category": "desk",
+      "size_m": [
+        0.9,
+        0.75,
+        0.9
+      ],
+      "pos_m": [
+        1,
+        -0.95
+      ],
+      "rotation_deg": -90
+    },
+    {
+      "category": "storage",
+      "size_m": [
+        0.5,
+        0.45,
+        1.05
+      ],
+      "pos_m": [
+        1.15,
+        -0.25
+      ],
+      "rotation_deg": -90
+    },
+    {
+      "category": "desk",
+      "size_m": [
+        0.9,
+        0.65,
+        1.1
+      ],
+      "pos_m": [
+        0.15,
+        -1.6
+      ],
+      "rotation_deg": 0
+    }
+  ]
+}

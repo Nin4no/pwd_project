@@ -1,0 +1,226 @@
+/* Studio 전체 화면 풀블리드 캔버스 + 플로팅 글래스 패널. 색·간격·모션은 토큰만 */
+.studio {
+  --studio-left-w: 264px;
+  --studio-right-w: 292px;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--bg);
+}
+.full {
+  display: grid;
+  place-items: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: var(--sp-6);
+  background: var(--bg);
+}
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-2);
+}
+.workspace {
+  position: relative;
+  z-index: 1;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+.left,
+.right {
+  position: absolute;
+  top: var(--sp-4);
+  bottom: var(--sp-4);
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-glass);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow);
+  transition: transform var(--dur-sheet) var(--ease-drawer), opacity var(--dur) var(--ease-out), visibility 0s linear 0s;
+}
+.left {
+  left: var(--sp-4);
+  width: var(--studio-left-w);
+}
+.right {
+  right: var(--sp-4);
+  width: var(--studio-right-w);
+}
+.left[data-open='false'] {
+  transform: translateX(calc(-100% - var(--sp-4)));
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transition: transform var(--dur-sheet) var(--ease-drawer), opacity var(--dur) var(--ease-out), visibility 0s linear var(--dur-sheet);
+}
+.right[data-open='false'] {
+  transform: translateX(calc(100% + var(--sp-4)));
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+  transition: transform var(--dur-sheet) var(--ease-drawer), opacity var(--dur) var(--ease-out), visibility 0s linear var(--dur-sheet);
+}
+.panelScroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border-radius: calc(var(--r-lg) - 1px);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+.panelScroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.panelScroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.panelScroll::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+}
+.edgeTab {
+  position: absolute;
+  top: var(--sp-4);
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 48px;
+  padding: 0;
+  border: 1px solid var(--line);
+  background: var(--surface-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-sm);
+  color: var(--text-sub);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+}
+.edgeTab svg {
+  display: block;
+  width: 14px;
+  height: 14px;
+}
+.edgeTabLeft {
+  left: 100%;
+  border-left: 0;
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+}
+.edgeTabRight {
+  right: 100%;
+  border-right: 0;
+  border-radius: var(--r-sm) 0 0 var(--r-sm);
+}
+.panelToggle {
+  position: absolute;
+  top: var(--sp-4);
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: 36px;
+  padding: 0 var(--sp-3);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-glass);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  letter-spacing: var(--ls-body);
+  cursor: pointer;
+  transition: background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+}
+.panelToggle svg {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  color: var(--text-sub);
+}
+.toggleLeft {
+  left: var(--sp-4);
+}
+.toggleRight {
+  right: var(--sp-4);
+}
+.toggleRight svg {
+  transform: scaleX(-1);
+}
+.edgeTab:focus-visible,
+.panelToggle:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.edgeTab:active,
+.panelToggle:active {
+  transform: scale(0.975);
+}
+@media (hover: hover) and (pointer: fine) {
+  .panelScroll::-webkit-scrollbar-thumb:hover {
+    background: var(--muted);
+  }
+  .edgeTab:hover,
+  .panelToggle:hover {
+    background: var(--surface);
+    border-color: var(--border-strong);
+    color: var(--text);
+  }
+  .panelToggle:hover svg {
+    color: var(--primary);
+  }
+}
+.stage {
+  position: absolute;
+  inset: 0;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.scene {
+  position: absolute;
+  inset: 0;
+}
+.mobileBar {
+  position: absolute;
+  top: var(--sp-2);
+  left: var(--sp-2);
+  right: var(--sp-2);
+  z-index: 4;
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  pointer-events: none;
+}
+.mobileBar > * {
+  pointer-events: auto;
+}
+@media (max-width: 1024px) {
+  .studio {
+    --studio-left-w: 236px;
+    --studio-right-w: 268px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .left,
+  .right,
+  .edgeTab,
+  .panelToggle {
+    transition: none;
+  }
+  .edgeTab:active,
+  .panelToggle:active {
+    transform: none;
+  }
+}

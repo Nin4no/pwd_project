@@ -1,0 +1,1555 @@
+{
+  "generatedAt": "2026-11-16T12:23:03.355Z",
+  "caseCount": 12,
+  "summary": {
+    "totalTargetItems": 54,
+    "totalPlacedItems": 54,
+    "casesAllPlaced": 12,
+    "casesWithCollisions": 0,
+    "totalCollisions": 0,
+    "casesWithDoorSwingIntrusion": 0,
+    "chairDeskCases": 6,
+    "chairDeskFacingPass": 6,
+    "totalFrontClearanceIntrusions": 11,
+    "casesPathWidthPass60cm": 2,
+    "totalWallSnapped": 28,
+    "totalWallTargets": 30
+  },
+  "cases": [
+    {
+      "caseId": "square_35x35__studio_full",
+      "roomId": "square_35x35",
+      "roomLabel": "정사각 3.5×3.5m",
+      "areaM2": 12.25,
+      "presetId": "studio_full",
+      "placedFloorCount": 5,
+      "targetCount": 5,
+      "expectedSpecs": [
+        "bed-super-single",
+        "desk-motion",
+        "chair",
+        "shelf",
+        "lamp-floor"
+      ],
+      "placedSpecIds": [
+        "bed-super-single",
+        "desk-motion",
+        "chair",
+        "shelf",
+        "lamp-floor"
+      ],
+      "missingSpecs": [],
+      "collisionCount": 0,
+      "collidingSpecIds": [],
+      "doorSwingIntrusionCount": 0,
+      "doorSwingIntrusions": [],
+      "chairDesk": {
+        "deskId": "f_k27oz3i3bp",
+        "chairId": "f_lgg5pai3bp",
+        "deskRot": -90,
+        "chairRot": 90,
+        "angleDeg": 0,
+        "facing": true,
+        "onDeskFrontSide": true,
+        "centerDistM": 0.8
+      },
+      "frontClearanceIntrusionCount": 2,
+      "frontClearanceIntrusions": [
+        {
+          "itemId": "f_1gyomri3bl",
+          "specId": "bed-super-single",
+          "blockedBy": [
+            "furniture:chair(f_lgg5pai3bp)",
+            "doorSwing:door_main"
+          ]
+        },
+        {
+          "itemId": "f_k27oz3i3bp",
+          "specId": "desk-motion",
+          "blockedBy": [
+            "furniture:bed-super-single(f_1gyomri3bl)"
+          ]
+        }
+      ],
+      "minPathWidthCm": 0,
+      "pathWidthAtLeast60cm": false,
+      "pathReachable": false,
+      "centerOccupiedBy": "bed-super-single",
+      "wallSnappedCount": 3,
+      "wallTargetCount": 3,
+      "wallSnapDetails": [
+        {
+          "id": "f_1gyomri3bl",
+          "specId": "bed-super-single",
+          "gapM": 0,
+          "snapped": true,
+          "backToWall": true
+        },
+        {
+          "id": "f_k27oz3i3bp",
+          "specId": "desk-motion",
+          "gapM": 0,
+          "snapped": true,
+          "backToWall": true
+        },
+        {
+          "id": "f_wmmqx7i3br",
+          "specId": "shelf",
+          "gapM": 0,
+          "snapped": true,
+          "backToWall": true
+        }
+      ],
+      "scoreReported": 97,
+      "placed": [
+        {
+          "id": "door_main",
+          "specId": "door-wood",
+          "x": -0.6000000000000001,
+          "z": 1.75,
+          "rotation": -180,
+          "swing": {
+            "hinge": "left",
+            "dir": "in"
+          }
+        },
+        {
+          "id": "f_1gyomri3bl",
+          "specId": "bed-super-single",
+          "x": 0,
+          "z": -0.69,
+          "rotation": 0
+        },
+        {
+          "id": "f_k27oz3i3bp",
+          "specId": "desk-motion",
+          "x": 1.3399999999999999,
+          "z": 0.99,
+          "rotation": -90
+        },
+        {
+          "id": "f_lgg5pai3bp",
+          "specId": "chair",
+          "x": 0.5399999999999999,
+          "z": 0.99,
+          "rotation": 90
+        },
+        {
+          "id": "f_wmmqx7i3br",
+          "specId": "shelf",
+          "x": -1.29,
+          "z": -1.54,
+          "rotation": 0
+        },
+        {
+          "id": "f_0iel2li3br",
+          "specId": "lamp-floor",
+          "x": 1.225,
+          "z": -1.5,
+          "rotation": 0
+        }
+      ],
+      "svgPath": "audit/square_35x35__studio_full.svg"
+    },
+    {
+      "caseId": "square_35x35__home_office",
+      "roomId": "square_35x35",
+      "roomLabel": "정사각 3.5×3.5m",
+      "areaM2": 12.25,
+      "presetId": "home_office",
+      "placedFloorCount": 5,
+      "targetCount": 5,
+      "expectedSpecs": [
+        "desk-motion",
+        "chair",
+        "shelf",
+        "drawer",
+        "lamp-floor"
+      ],
+      "placedSpecIds": [
+        "desk-motion",
+        "chair",
+        "shelf",
+        "drawer",
+        "lamp-floor"
+      ],
+      "missingSpecs": [],
+      "collisionCount": 0,
+      "collidingSpecIds": [],
+      "doorSwingIntrusionCount": 0,
+      "doorSwingIntrusions": [],
+      "chairDesk": {
+        "deskId": "f_tldggpi3c0",
+        "chairId": "f_ervjsxi3c0",
+        "deskRot": 0,
+        "chairRot": -180,
+        "angleDeg": 0,
+        "facing": true,
+        "onDeskFrontSide": true,
+        "centerDistM": 0.8
+      },
+      "frontClearanceIntrusionCount": 0,
+      "frontClearanceIntrusions": [],
+      "minPathWidthCm": 48,
+      "pathWidthAtLeast60cm": false,
+      "pathReachable": true,
+      "centerOccupiedBy": null,
+      "wallSnappedCount": 3,
+      "wallTargetCount": 3,
+      "wallSnapDetails": [
+        {
+          "id": "f_tldggpi3c0",
+          "specId": "desk-motion",
+          "gapM": 0,
+          "snapped": true,
+          "backToWall": true
+        },
+        {
+          "id": "f_dxmg96i3c0",
+          "specId": "shelf",
+          "gapM": 0,
+          "snapped": true,
+          "backToWall": true
+        },
+        {
+          "id": "f_903gi9i3c1",
+          "specId": "drawer",
+          "gapM": 0,
+          "snapped": true,
+          "backToWall": true
+        }
+      ],
+      "scoreReported": 97,
+      "placed": [
+        {
+          "id": "door_main",
+          "specId": "door-wood",
+          "x": -0.6000000000000001,
+          "z": 1.75,
+          "rotation": -180,
+          "swing": {
+            "hinge": "left",
+            "dir": "in"
+          }
+        },
+        {
+          "id": "f_tldggpi3c0",
+          "specId": "desk-motion",
+          "x": 0,
+          "z": -1.34,
+          "rotation": 0
+        },
+        {
+          "id": "f_ervjsxi3c0",
+          "specId": "chair",
+          "x": 0,
+          "z": -0.5400000000000001,
+          "rotation": -180
+        },
+        {
+          "id": "f_dxmg96i3c0",
+          "specId": "shelf",
+          "x": -1.29,
+          "z": -1.54,
+          "rotation": 0
+        },
+        {
+          "id": "f_903gi9i3c1",
+          "specId": "drawer",
+          "x": 1.29,
+          "z": -1.4649999999999999,
+          "rotation": 0
+        },
+        {
+          "id": "f_whri55i3c2",
+          "specId": "lamp-floor",
+          "x": 1.5,
+          "z": 1.225,
+          "rotation": 0
+        }
+      ],
+      "svgPath": "audit/square_35x35__home_office.svg"
+    },
+    {
+      "caseId": "square_35x35__cozy_bedroom",
+      "roomId": "square_35x35",
+      "roomLabel": "정사각 3.5×3.5m",
+      "areaM2": 12.25,
+      "presetId": "cozy_bedroom",
+      "placedFloorCount": 4,
+      "targetCount": 4,
+      "expectedSpecs": [
+        "bed-super-single",
+        "drawer",
+        "table-low",
+        "lamp-floor"
+      ],
+      "placedSpecIds": [
+        "bed-super-single",
+        "drawer",
+        "table-low",
+        "lamp-floor"
+      ],
+      "missingSpecs": [],
+      "collisionCount": 0,
+      "collidingSpecIds": [],
+      "doorSwingIntrusionCount": 0,
+      "doorSwingIntrusions": [],
+      "chairDesk": null,
+      "frontClearanceIntrusionCount": 1,
+      "frontClearanceIntrusions": [
+        {
+          "itemId": "f_3kpnpgi3cb",
+          "specId": "bed-super-single",
+          "blockedBy": [
+            "doorSwing:door_main"
+          ]
+        }
+      ],
+      "minPathWidthCm": 0,
+      "pathWidthAtLeast60cm": false,
+      "pathReachable": false,
+      "centerOccupiedBy": "bed-super-single",
+      "wallSnappedCount": 2,
+      "wallTargetCount": 2,
+      "wallSnapDetails": [
+        {
+          "id": "f_3kpnpgi3cb",
+          "specId": "bed-super-single",
+          "gapM": 0,
+          "snapped": true,
+          "backToWall": true
+        },
+        {
+          "id": "f_2wbyrfi3cc",
+          "specId": "drawer",
+          "gapM": 0,
+          "snapped": true,
+          "backToWall": true
+        }
+      ],
+      "scoreReported": 97,
+      "placed": [
+        {
+          "id": "door_main",
+          "specId": "door-wood",
+          "x": -0.6000000000000001,
+          "z": 1.75,
+          "rotation": -180,
+          "swing": {
+            "hinge": "left",
+            "dir": "in"
+          }
+        },
+        {
+          "id": "f_3kpnpgi3cb",
+          "specId": "bed-super-single",
+          "x": 0,
+          "z": -0.69,
+          "rotation": 0
+        },
+        {
+          "id": "f_2wbyrfi3cc",
+          "specId": "drawer",
+          "x": -1.29,
+          "z": -1.4649999999999999,
+          "rotation": 0
+        },
+        {
+          "id": "f_e3n9aki3cc",
+          "specId": "table-low",
+          "x": 1.24,
+          "z": -1.44,
+          "rotation": 0
+        },
+        {
+          "id": "f_9lw88ui3ce",
+          "specId": "lamp-floor",
+          "x": 1.5,
+          "z": 1.225,
+          "rotation": 0
+        }
+      ],
+      "svgPath": "audit/square_35x35__cozy_bedroom.svg"
+    },
+    {
+      "caseId": "square_35x35__living_lounge",
+      "roomId": "square_35x35",
+      "roomLabel": "정사각 3.5×3.5m",
+      "areaM2": 12.25,
+      "presetId": "living_lounge",
+      "placedFloorCount": 4,
+      "targetCount": 4,
+      "expectedSpecs": [
+        "sofa-2",
+        "table-round",
+        "shelf",
+        "lamp-floor"
+      ],
+      "placedSpecIds": [
+        "sofa-2",
+        "table-round",
+        "shelf",
+        "lamp-floor"
+      ],
+      "missingSpecs": [],
+      "collisionCount": 0,
+      "collidingSpecIds": [],
+      "doorSwingIntrusionCount": 0,
+      "doorSwingIntrusions": [],
+      "chairDesk": null,
+      "frontClearanceIntrusionCount": 1,
+      "frontClearanceIntrusions": [
+        {
+          "itemId": "f_n0b5wci3cj",
+          "specId": "table-round",
+          "blockedBy": [
+            "doorSwing:door_main"
+          ]
+        }
+      ],
+      "minPathWidthCm": 0,
+      "pathWidthAtLeast60cm": false,
+      "pathReachable": false,
+      "centerOccupiedBy": "table-round",
+      "wallSnappedCount": 2,
+      "wallTargetCount": 2,
+      "wallSnapDetails": [
+        {
+          "id": "f_atmsy6i3cj",
+          "specId": "sofa-2",
+          "gapM": 0,
+          "snapped": true,
+          "backToWall": true
+        },
+        {
+          "id": "f_kwamuii3cj",
+          "specId": "shelf",
+          "gapM": 0,
+          "snapped": true,
+          "backToWall": true
+        }
+      ],
+      "scoreReported": 97,
+      "placed": [
+        {
+          "id": "door_main",
+          "specId": "door-wood",
+          "x": -0.6000000000000001,
+          "z": 1.75,
+          "rotation": -180,
+          "swing": {
+            "hinge": "left",
+            "dir": "in"
+          }
+        },
+        {
+          "id": "f_atmsy6i3cj",
+          "specId": "sofa-2",
+          "x": 0,
+          "z": -1.2650000000000001,
+          "rotation": 0
+        },
+        {
+          "id": "f_n0b5wci3cj",
+          "specId": "table-round",
+          "x": 0,
+          "z": -0.0900000000000003,
+          "rotation": 0
+        },
+        {
+          "id": "f_kwamuii3cj",
+          "specId": "shelf",
+          "x": -1.29,
+          "z": -1.54,
+          "rotation": 0
+        },
+        {
+          "id": "f_akhjzyi3ck",
+          "specId": "lamp-floor",
+          "x": 1.225,
+          "z": -1.5,
+          "rotation": 0
+        }
+      ],
+      "svgPath": "audit/square_35x35__living_lounge.svg"
+    },
+    {
+      "caseId": "rect_27x55__studio_full",
+      "roomId": "rect_27x55",
+      "roomLabel": "긴 직사각 2.7×5.5m",
+      "areaM2": 14.85,
+      "presetId": "studio_full",
+      "placedFloorCount": 5,
+      "targetCount": 5,
+      "expectedSpecs": [
+        "bed-queen",
+        "desk-motion",
+        "chair",
+        "wardrobe",
+        "lamp-floor"
+      ],
+      "placedSpecIds": [
+        "bed-queen",
+        "desk-motion",
+        "chair",
+        "wardrobe",
+        "lamp-floor"
+      ],
+      "missingSpecs": [],
+      "collisionCount": 0,
+      "collidingSpecIds": [],
+      "doorSwingIntrusionCount": 0,
+      "doorSwingIntrusions": [],
+      "chairDesk": {
+        "deskId": "f_xlaz1ri3cp",
+        "chairId": "f_ybzw5vi3cp",
+        "deskRot": -90,
+        "chairRot": 90,
+        "angleDeg": 0,
+        "facing": true,
+        "onDeskFrontSide": true,
+        "centerDistM": 0.8
+      },
+      "frontClearanceIntrusionCount": 2,
+      "frontClearanceIntrusions": [
+        {
+          "itemId": "f_ton4qpi3co",
+          "specId": "bed-queen",
+          "blockedBy": [
+            "wall:w_mg8nrhi3bg"
+          ]
+        },
+        {
+          "itemId": "f_cnlx7di3cq",
+          "specId": "wardrobe",
+          "blockedBy": [
+            "doorSwing:door_main"
+          ]
+        }
+      ],
+      "minPathWidthCm": 0,
+      "pathWidthAtLeast60cm": false,
+      "pathReachable": false,
+      "centerOccupiedBy": "bed-queen",
+      "wallSnappedCount": 2,
+      "wallTargetCount": 3,
+      "wallSnapDetails": [
+        {
+          "id": "f_ton4qpi3co",
+          "specId": "bed-queen",
+          "gapM": 0,
+          "snapped": false,
+          "backToWall": false
+        },
+        {
+          "id": "f_xlaz1ri3cp",
+          "specId": "desk-motion",
+          "gapM": 0,
+          "snapped": true,
+          "backToWall": true
+        },
+        {
+          "id": "f_cnlx7di3cq",
+          "specId": "wardrobe",
+          "gapM": 0,
+          "snapped": true,
+          "backToWall": true
+        }
+      ],
+      "scoreReported": 97,
+      "placed": [
+        {
+          "id": "door_main",
+          "specId": "door-wood",
+          "x": 0,
+          "z": 2.75,
+          "rotation": -180,
+          "swing": {
+            "hinge": "left",
+            "dir": "in"
+          }
+        },
+        {
+          "id": "f_ton4qpi3co",
+          "specId": "bed-queen",
+          "x": -0.29000000000000004,
+          "z": 0,
+          "rotation": -90
+        },
+        {
+          "id": "f_xlaz1ri3cp",
+          "specId": "desk-motion",
+          "x": 0.9400000000000001,
+          "z": -1.99,
+          "rotation": -90
+        },
+        {
+          "id": "f_ybzw5vi3cp",
+          "specId": "chair",
+          "x": 0.14000000000000012,
+          "z": -1.99,
+          "rotation": 90
+        },
+        {
+          "id": "f_cnlx7di3cq",
+          "specId": "wardrobe",
+          "x": 0.9900000000000001,
+          "z": 1.6500000000000004,
+          "rotation": -90
+        },
+        {
+          "id": "f_p6esh6i3cr",
+          "specId": "lamp-floor",
+          "x": -1.1,
+          "z": 1.925,
+          "rotation": 0
+        }
+      ],
+      "svgPath": "audit/rect_27x55__studio_full.svg"
+    },
+    {
+      "caseId": "rect_27x55__home_office",
+      "roomId": "rect_27x55",
+      "roomLabel": "긴 직사각 2.7×5.5m",
+      "areaM2": 14.85,
+      "presetId": "home_office",
+      "placedFloorCount": 5,
+      "targetCount": 5,
+      "expectedSpecs": [
+        "desk-motion",
+        "chair",
+        "shelf",
+        "drawer",
+        "lamp-floor"
+      ],
+      "placedSpecIds": [
+        "desk-motion",
+        "chair",
+        "shelf",
+        "drawer",
+        "lamp-floor"
+      ],
+      "missingSpecs": [],
+      "collisionCount": 0,
+      "collidingSpecIds": [],
+      "doorSwingIntrusionCount": 0,
+      "doorSwingIntrusions": [],
+      "chairDesk": {
+        "deskId": "f_wzjqn9i3cv",
+        "chairId": "f_i86v53i3cv",
+        "deskRot": -90,
+        "chairRot": 90,
+        "angleDeg": 0,
+        "facing": true,
+        "onDeskFrontSide": true,
+        "centerDistM": 0.8
+      },
+      "frontClearanceIntrusionCount": 0,
+      "frontClearanceIntrusions": [],
+      "minPathWidthCm": 0,
+      "pathWidthAtLeast60cm": false,
+      "pathReachable": false,
+      "centerOccupiedBy": "chair",
+      "wallSnappedCount": 3,
+      "wallTargetCount": 3,
+      "wallSnapDetails": [
+        {
+          "id": "f_wzjqn9i3cv",
+          "specId": "desk-motion",
+          "gapM": 0,
+          "snapped": true,
+          "backToWall": true
+        },
+        {
+          "id": "f_gr5eb8i3cv",
+          "specId": "shelf",
+          "gapM": 0,
+          "snapped": true,
+          "backToWall": true
+        },
+        {
+          "id": "f_7g13hbi3cw",
+          "specId": "drawer",
+          "gapM": 0,
+          "snapped": true,
+          "backToWall": true
+        }
+      ],
+      "scoreReported": 97,
+      "placed": [
+        {
+          "id": "door_main",
+          "specId": "door-wood",
+          "x": 0,
+          "z": 2.75,
+          "rotation": -180,
+          "swing": {
+            "hinge": "left",
+            "dir": "in"
+          }
+        },
+        {
+          "id": "f_wzjqn9i3cv",
+          "specId": "desk-motion",
+          "x": 0.9400000000000001,
+          "z": 0,
+          "rotation": -90
+        },
+        {
+          "id": "f_i86v53i3cv",
+          "specId": "chair",
+          "x": 0.14000000000000012,
+          "z": 4.8985871965894125e-17,
+          "rotation": 90
+        },
+        {
+          "id": "f_gr5eb8i3cv",
+          "specId": "shelf",
+          "x": 1.1400000000000001,
+          "z": -1.1,
+          "rotation": -90
+        },
+        {
+          "id": "f_7g13hbi3cw",
+          "specId": "drawer",
+          "x": 1.065,
+          "z": 1.0999999999999996,
+          "rotation": -90
+        },
+        {
+          "id": "f_0hkffvi3cw",
+          "specId": "lamp-floor",
+          "x": 1.1,
+          "z": -1.925,
+          "rotation": 0
+        }
+      ],
+      "svgPath": "audit/rect_27x55__home_office.svg"
+    },
+    {
+      "caseId": "rect_27x55__cozy_bedroom",
+      "roomId": "rect_27x55",
+      "roomLabel": "긴 직사각 2.7×5.5m",
+      "areaM2": 14.85,
+      "presetId": "cozy_bedroom",
+      "placedFloorCount": 4,
+      "targetCount": 4,
+      "expectedSpecs": [
+        "bed-queen",
+        "drawer",
+        "table-low",
+        "lamp-floor"
+      ],
+      "placedSpecIds": [
+        "bed-queen",
+        "drawer",
+        "table-low",
+        "lamp-floor"
+      ],
+      "missingSpecs": [],
+      "collisionCount": 0,
+      "collidingSpecIds": [],
+      "doorSwingIntrusionCount": 0,
+      "doorSwingIntrusions": [],
+      "chairDesk": null,
+      "frontClearanceIntrusionCount": 3,
+      "frontClearanceIntrusions": [
+        {
+          "itemId": "f_55qsq0i3cz",
+          "specId": "bed-queen",
+          "blockedBy": [
+            "wall:w_mg8nrhi3bg"
+          ]
+        },
+        {
+          "itemId": "f_7naxmsi3d0",
+          "specId": "drawer",
+          "blockedBy": [
+            "furniture:bed-queen(f_55qsq0i3cz)"
+          ]
+        },
+        {
+          "itemId": "f_ug1i9ci3d0",
+          "specId": "table-low",
+          "blockedBy": [
+            "furniture:bed-queen(f_55qsq0i3cz)"
+          ]
+        }
+      ],
+      "minPathWidthCm": 0,
+      "pathWidthAtLeast60cm": false,
+      "pathReachable": false,
+      "centerOccupiedBy": "bed-queen",
+      "wallSnappedCount": 1,
+      "wallTargetCount": 2,
+      "wallSnapDetails": [
+        {
+          "id": "f_55qsq0i3cz",
+          "specId": "bed-queen",
+          "gapM": 0,
+          "snapped": false,
+          "backToWall": false
+        },
+        {
+          "id": "f_7naxmsi3d0",
+          "specId": "drawer",
+          "gapM": 0,
+          "snapped": true,
+          "backToWall": true
+        }
+      ],
+      "scoreReported": 97,
+      "placed": [
+        {
+          "id": "door_main",
+          "specId": "door-wood",
+          "x": 0,
+          "z": 2.75,
+          "rotation": -180,
+          "swing": {
+            "hinge": "left",
+            "dir": "in"
+          }
+        },
+        {
+          "id": "f_55qsq0i3cz",
+          "specId": "bed-queen",
+          "x": -0.29000000000000004,
+          "z": 0,
+          "rotation": -90
+        },
+        {
+          "id": "f_7naxmsi3d0",
+          "specId": "drawer",
+          "x": 1.065,
+          "z": 0,
+          "rotation": -90
+        },
+        {
+          "id": "f_ug1i9ci3d0",
+          "specId": "table-low",
+          "x": 1.04,
+          "z": -1.1,
+          "rotation": -90
+        },
+        {
+          "id": "f_dfwybei3d0",
+          "specId": "lamp-floor",
+          "x": 1.1,
+          "z": -1.925,
+          "rotation": 0
+        }
+      ],
+      "svgPath": "audit/rect_27x55__cozy_bedroom.svg"
+    },
+    {
+      "caseId": "rect_27x55__living_lounge",
+      "roomId": "rect_27x55",
+      "roomLabel": "긴 직사각 2.7×5.5m",
+      "areaM2": 14.85,
+      "presetId": "living_lounge",
+      "placedFloorCount": 4,
+      "targetCount": 4,
+      "expectedSpecs": [
+        "sofa-2",
+        "table-round",
+        "shelf",
+        "lamp-floor"
+      ],
+      "placedSpecIds": [
+        "sofa-2",
+        "table-round",
+        "shelf",
+        "lamp-floor"
+      ],
+      "missingSpecs": [],
+      "collisionCount": 0,
+      "collidingSpecIds": [],
+      "doorSwingIntrusionCount": 0,
+      "doorSwingIntrusions": [],
+      "chairDesk": null,
+      "frontClearanceIntrusionCount": 1,
+      "frontClearanceIntrusions": [
+        {
+          "itemId": "f_jvt9r4i3d4",
+          "specId": "table-round",
+          "blockedBy": [
+            "wall:w_mg8nrhi3bg"
+          ]
+        }
+      ],
+      "minPathWidthCm": 0,
+      "pathWidthAtLeast60cm": false,
+      "pathReachable": false,
+      "centerOccupiedBy": "table-round",
+      "wallSnappedCount": 2,
+      "wallTargetCount": 2,
+      "wallSnapDetails": [
+        {
+          "id": "f_ysduc0i3d4",
+          "specId": "sofa-2",
+          "gapM": 0,
+          "snapped": true,
+          "backToWall": true
+        },
+        {
+          "id": "f_is11pii3d4",
+          "specId": "shelf",
+          "gapM": 0,
+          "snapped": true,
+          "backToWall": true
+        }
+      ],
+      "scoreReported": 97,
+      "placed": [
+        {
+          "id": "door_main",
+          "specId": "door-wood",
+          "x": 0,
+          "z": 2.75,
+          "rotation": -180,
+          "swing": {
+            "hinge": "left",
+            "dir": "in"
+          }
+        },
+        {
+          "id": "f_ysduc0i3d4",
+          "specId": "sofa-2",
+          "x": 0.865,
+          "z": 0,
+          "rotation": -90
+        },
+        {
+          "id": "f_jvt9r4i3d4",
+          "specId": "table-round",
+          "x": -0.30999999999999983,
+          "z": 7.1947999449907e-17,
+          "rotation": -90
+        },
+        {
+          "id": "f_is11pii3d4",
+          "specId": "shelf",
+          "x": 1.1400000000000001,
+          "z": -1.65,
+          "rotation": -90
+        },
+        {
+          "id": "f_yqsu8si3d5",
+          "specId": "lamp-floor",
+          "x": 1.1,
+          "z": 1.9249999999999998,
+          "rotation": 0
+        }
+      ],
+      "svgPath": "audit/rect_27x55__living_lounge.svg"
+    },
+    {
+      "caseId": "lshape_5x4__studio_full",
+      "roomId": "lshape_5x4",
+      "roomLabel": "ㄱ자 5×4m (-2×2)",
+      "areaM2": 16,
+      "presetId": "studio_full",
+      "placedFloorCount": 5,
+      "targetCount": 5,
+      "expectedSpecs": [
+        "bed-queen",
+        "desk-motion",
+        "chair",
+        "wardrobe",
+        "lamp-floor"
+      ],
+      "placedSpecIds": [
+        "bed-queen",
+        "desk-motion",
+        "chair",
+        "wardrobe",
+        "lamp-floor"
+      ],
+      "missingSpecs": [],
+      "collisionCount": 0,
+      "collidingSpecIds": [],
+      "doorSwingIntrusionCount": 0,
+      "doorSwingIntrusions": [],
+      "chairDesk": {
+        "deskId": "f_02ffopi3da",
+        "chairId": "f_faeqcji3da",
+        "deskRot": 0,
+        "chairRot": -180,
+        "angleDeg": 0,
+        "facing": true,
+        "onDeskFrontSide": true,
+        "centerDistM": 0.8
+      },
+      "frontClearanceIntrusionCount": 1,
+      "frontClearanceIntrusions": [
+        {
+          "itemId": "f_3yo8r5i3db",
+          "specId": "wardrobe",
+          "blockedBy": [
+            "furniture:bed-queen(f_ak0o17i3d9)"
+          ]
+        }
+      ],
+      "minPathWidthCm": 0,
+      "pathWidthAtLeast60cm": false,
+      "pathReachable": false,
+      "centerOccupiedBy": "bed-queen",
+      "wallSnappedCount": 3,
+      "wallTargetCount": 3,
+      "wallSnapDetails": [
+        {
+          "id": "f_ak0o17i3d9",
+          "specId": "bed-queen",
+          "gapM": 0,
+          "snapped": true,
+          "backToWall": true
+        },
+        {
+          "id": "f_02ffopi3da",
+          "specId": "desk-motion",
+          "gapM": 0,
+          "snapped": true,
+          "backToWall": true
+        },
+        {
+          "id": "f_3yo8r5i3db",
+          "specId": "wardrobe",
+          "gapM": 0,
+          "snapped": true,
+          "backToWall": true
+        }
+      ],
+      "scoreReported": 97,
+      "placed": [
+        {
+          "id": "door_main",
+          "specId": "door-wood",
+          "x": -1,
+          "z": 2,
+          "rotation": -180,
+          "swing": {
+            "hinge": "left",
+            "dir": "in"
+          }
+        },
+        {
+          "id": "f_ak0o17i3d9",
+          "specId": "bed-queen",
+          "x": -1,
+          "z": -0.94,
+          "rotation": 0
+        },
+        {
+          "id": "f_02ffopi3da",
+          "specId": "desk-motion",
+          "x": 1,
+          "z": -1.59,
+          "rotation": 0
+        },
+        {
+          "id": "f_faeqcji3da",
+          "specId": "chair",
+          "x": 1,
+          "z": -0.7900000000000001,
+          "rotation": -180
+        },
+        {
+          "id": "f_3yo8r5i3db",
+          "specId": "wardrobe",
+          "x": -2.14,
+          "z": 0,
+          "rotation": 90
+        },
+        {
+          "id": "f_iza59xi3dc",
+          "specId": "lamp-floor",
+          "x": -2.25,
+          "z": 1.4,
+          "rotation": 0
+        }
+      ],
+      "svgPath": "audit/lshape_5x4__studio_full.svg"
+    },
+    {
+      "caseId": "lshape_5x4__home_office",
+      "roomId": "lshape_5x4",
+      "roomLabel": "ㄱ자 5×4m (-2×2)",
+      "areaM2": 16,
+      "presetId": "home_office",
+      "placedFloorCount": 5,
+      "targetCount": 5,
+      "expectedSpecs": [
+        "desk-motion",
+        "chair",
+        "shelf",
+        "drawer",
+        "lamp-floor"
+      ],
+      "placedSpecIds": [
+        "desk-motion",
+        "chair",
+        "shelf",
+        "drawer",
+        "lamp-floor"
+      ],
+      "missingSpecs": [],
+      "collisionCount": 0,
+      "collidingSpecIds": [],
+      "doorSwingIntrusionCount": 0,
+      "doorSwingIntrusions": [],
+      "chairDesk": {
+        "deskId": "f_r848mki3dj",
+        "chairId": "f_u6hw2si3dj",
+        "deskRot": 0,
+        "chairRot": -180,
+        "angleDeg": 0,
+        "facing": true,
+        "onDeskFrontSide": true,
+        "centerDistM": 0.8
+      },
+      "frontClearanceIntrusionCount": 0,
+      "frontClearanceIntrusions": [],
+      "minPathWidthCm": 88,
+      "pathWidthAtLeast60cm": true,
+      "pathReachable": true,
+      "centerOccupiedBy": null,
+      "wallSnappedCount": 3,
+      "wallTargetCount": 3,
+      "wallSnapDetails": [
+        {
+          "id": "f_r848mki3dj",
+          "specId": "desk-motion",
+          "gapM": 0,
+          "snapped": true,
+          "backToWall": true
+        },
+        {
+          "id": "f_vdvb5vi3dk",
+          "specId": "shelf",
+          "gapM": 0,
+          "snapped": true,
+          "backToWall": true
+        },
+        {
+          "id": "f_3gbh1zi3dm",
+          "specId": "drawer",
+          "gapM": 0,
+          "snapped": true,
+          "backToWall": true
+        }
+      ],
+      "scoreReported": 97,
+      "placed": [
+        {
+          "id": "door_main",
+          "specId": "door-wood",
+          "x": -1,
+          "z": 2,
+          "rotation": -180,
+          "swing": {
+            "hinge": "left",
+            "dir": "in"
+          }
+        },
+        {
+          "id": "f_r848mki3dj",
+          "specId": "desk-motion",
+          "x": 0,
+          "z": -1.59,
+          "rotation": 0
+        },
+        {
+          "id": "f_u6hw2si3dj",
+          "specId": "chair",
+          "x": 0,
+          "z": -0.7900000000000001,
+          "rotation": -180
+        },
+        {
+          "id": "f_vdvb5vi3dk",
+          "specId": "shelf",
+          "x": -2.04,
+          "z": -1.79,
+          "rotation": 0
+        },
+        {
+          "id": "f_3gbh1zi3dm",
+          "specId": "drawer",
+          "x": 2.04,
+          "z": -1.7149999999999999,
+          "rotation": 0
+        },
+        {
+          "id": "f_6wd8vmi3dm",
+          "specId": "lamp-floor",
+          "x": -2.25,
+          "z": 1.4,
+          "rotation": 0
+        }
+      ],
+      "svgPath": "audit/lshape_5x4__home_office.svg"
+    },
+    {
+      "caseId": "lshape_5x4__cozy_bedroom",
+      "roomId": "lshape_5x4",
+      "roomLabel": "ㄱ자 5×4m (-2×2)",
+      "areaM2": 16,
+      "presetId": "cozy_bedroom",
+      "placedFloorCount": 4,
+      "targetCount": 4,
+      "expectedSpecs": [
+        "bed-queen",
+        "drawer",
+        "table-low",
+        "lamp-floor"
+      ],
+      "placedSpecIds": [
+        "bed-queen",
+        "drawer",
+        "table-low",
+        "lamp-floor"
+      ],
+      "missingSpecs": [],
+      "collisionCount": 0,
+      "collidingSpecIds": [],
+      "doorSwingIntrusionCount": 0,
+      "doorSwingIntrusions": [],
+      "chairDesk": null,
+      "frontClearanceIntrusionCount": 0,
+      "frontClearanceIntrusions": [],
+      "minPathWidthCm": 0,
+      "pathWidthAtLeast60cm": false,
+      "pathReachable": false,
+      "centerOccupiedBy": "bed-queen",
+      "wallSnappedCount": 2,
+      "wallTargetCount": 2,
+      "wallSnapDetails": [
+        {
+          "id": "f_k94ex2i3dr",
+          "specId": "bed-queen",
+          "gapM": 0,
+          "snapped": true,
+          "backToWall": true
+        },
+        {
+          "id": "f_b4pmpki3ds",
+          "specId": "drawer",
+          "gapM": 0,
+          "snapped": true,
+          "backToWall": true
+        }
+      ],
+      "scoreReported": 97,
+      "placed": [
+        {
+          "id": "door_main",
+          "specId": "door-wood",
+          "x": -1,
+          "z": 2,
+          "rotation": -180,
+          "swing": {
+            "hinge": "left",
+            "dir": "in"
+          }
+        },
+        {
+          "id": "f_k94ex2i3dr",
+          "specId": "bed-queen",
+          "x": -1,
+          "z": -0.94,
+          "rotation": 0
+        },
+        {
+          "id": "f_b4pmpki3ds",
+          "specId": "drawer",
+          "x": 1,
+          "z": -1.7149999999999999,
+          "rotation": 0
+        },
+        {
+          "id": "f_zv45b7i3dt",
+          "specId": "table-low",
+          "x": 1.99,
+          "z": -1.69,
+          "rotation": 0
+        },
+        {
+          "id": "f_jgpi3bi3du",
+          "specId": "lamp-floor",
+          "x": -2.25,
+          "z": 1.4,
+          "rotation": 0
+        }
+      ],
+      "svgPath": "audit/lshape_5x4__cozy_bedroom.svg"
+    },
+    {
+      "caseId": "lshape_5x4__living_lounge",
+      "roomId": "lshape_5x4",
+      "roomLabel": "ㄱ자 5×4m (-2×2)",
+      "areaM2": 16,
+      "presetId": "living_lounge",
+      "placedFloorCount": 4,
+      "targetCount": 4,
+      "expectedSpecs": [
+        "sofa-2",
+        "table-round",
+        "shelf",
+        "lamp-floor"
+      ],
+      "placedSpecIds": [
+        "sofa-2",
+        "table-round",
+        "shelf",
+        "lamp-floor"
+      ],
+      "missingSpecs": [],
+      "collisionCount": 0,
+      "collidingSpecIds": [],
+      "doorSwingIntrusionCount": 0,
+      "doorSwingIntrusions": [],
+      "chairDesk": null,
+      "frontClearanceIntrusionCount": 0,
+      "frontClearanceIntrusions": [],
+      "minPathWidthCm": 88,
+      "pathWidthAtLeast60cm": true,
+      "pathReachable": true,
+      "centerOccupiedBy": null,
+      "wallSnappedCount": 2,
+      "wallTargetCount": 2,
+      "wallSnapDetails": [
+        {
+          "id": "f_peywmxi3dz",
+          "specId": "sofa-2",
+          "gapM": 0,
+          "snapped": true,
+          "backToWall": true
+        },
+        {
+          "id": "f_3k8e42i3e0",
+          "specId": "shelf",
+          "gapM": 0,
+          "snapped": true,
+          "backToWall": true
+        }
+      ],
+      "scoreReported": 97,
+      "placed": [
+        {
+          "id": "door_main",
+          "specId": "door-wood",
+          "x": -1,
+          "z": 2,
+          "rotation": -180,
+          "swing": {
+            "hinge": "left",
+            "dir": "in"
+          }
+        },
+        {
+          "id": "f_peywmxi3dz",
+          "specId": "sofa-2",
+          "x": 0,
+          "z": -1.5150000000000001,
+          "rotation": 0
+        },
+        {
+          "id": "f_t4kvj0i3dz",
+          "specId": "table-round",
+          "x": 0,
+          "z": -0.3400000000000003,
+          "rotation": 0
+        },
+        {
+          "id": "f_3k8e42i3e0",
+          "specId": "shelf",
+          "x": -2.04,
+          "z": -1.79,
+          "rotation": 0
+        },
+        {
+          "id": "f_e7j3umi3e1",
+          "specId": "lamp-floor",
+          "x": 1.75,
+          "z": -1.75,
+          "rotation": 0
+        }
+      ],
+      "svgPath": "audit/lshape_5x4__living_lounge.svg"
+    }
+  ],
+  "reproProbes": [
+    {
+      "probeId": "probe_35x40_nodoor",
+      "areaM2": 14,
+      "collisionCount": 0,
+      "collidingSpecIds": [],
+      "chairDesk": {
+        "deskId": "f_ifappci3e8",
+        "chairId": "f_evjnp9i3e8",
+        "deskRot": 90,
+        "chairRot": -90,
+        "angleDeg": 0,
+        "facing": true,
+        "onDeskFrontSide": true,
+        "centerDistM": 0.8
+      },
+      "placed": [
+        {
+          "id": "f_oa37cdi3e8",
+          "specId": "bed-queen",
+          "x": 0.69,
+          "z": 0,
+          "rotation": -90
+        },
+        {
+          "id": "f_ifappci3e8",
+          "specId": "desk-motion",
+          "x": -1.3399999999999999,
+          "z": 1.24,
+          "rotation": 90
+        },
+        {
+          "id": "f_evjnp9i3e8",
+          "specId": "chair",
+          "x": -0.5399999999999999,
+          "z": 1.24,
+          "rotation": -90
+        },
+        {
+          "id": "f_8pzt0yi3e8",
+          "specId": "wardrobe",
+          "x": 1.3900000000000001,
+          "z": -1.54,
+          "rotation": -90
+        },
+        {
+          "id": "f_hajpqpi3e8",
+          "specId": "lamp-floor",
+          "x": 1.5,
+          "z": 1.4,
+          "rotation": 0
+        }
+      ]
+    },
+    {
+      "probeId": "probe_35x40_door",
+      "areaM2": 14,
+      "collisionCount": 0,
+      "collidingSpecIds": [],
+      "chairDesk": {
+        "deskId": "f_twjacqi3ed",
+        "chairId": "f_gsf96ui3ed",
+        "deskRot": 90,
+        "chairRot": -90,
+        "angleDeg": 0,
+        "facing": true,
+        "onDeskFrontSide": true,
+        "centerDistM": 0.8
+      },
+      "placed": [
+        {
+          "id": "door_probe",
+          "specId": "door-wood",
+          "x": -0.6000000000000001,
+          "z": 2,
+          "rotation": -180,
+          "swing": {
+            "hinge": "left",
+            "dir": "in"
+          }
+        },
+        {
+          "id": "f_dgioemi3ea",
+          "specId": "bed-queen",
+          "x": 0.69,
+          "z": 0,
+          "rotation": -90
+        },
+        {
+          "id": "f_twjacqi3ed",
+          "specId": "desk-motion",
+          "x": -1.3399999999999999,
+          "z": -1.24,
+          "rotation": 90
+        },
+        {
+          "id": "f_gsf96ui3ed",
+          "specId": "chair",
+          "x": -0.5399999999999999,
+          "z": -1.24,
+          "rotation": -90
+        },
+        {
+          "id": "f_hbq1jai3eg",
+          "specId": "wardrobe",
+          "x": 1.3900000000000001,
+          "z": -1.54,
+          "rotation": -90
+        },
+        {
+          "id": "f_ho8tpci3eg",
+          "specId": "lamp-floor",
+          "x": 1.5,
+          "z": 1.4,
+          "rotation": 0
+        }
+      ]
+    },
+    {
+      "probeId": "probe_35x35_nodoor",
+      "areaM2": 12.25,
+      "collisionCount": 0,
+      "collidingSpecIds": [],
+      "chairDesk": {
+        "deskId": "f_zblyv7i3ei",
+        "chairId": "f_oq6b1ci3ei",
+        "deskRot": -90,
+        "chairRot": 90,
+        "angleDeg": 0,
+        "facing": true,
+        "onDeskFrontSide": true,
+        "centerDistM": 0.8
+      },
+      "placed": [
+        {
+          "id": "f_be218ui3ei",
+          "specId": "bed-super-single",
+          "x": 0,
+          "z": -0.69,
+          "rotation": 0
+        },
+        {
+          "id": "f_zblyv7i3ei",
+          "specId": "desk-motion",
+          "x": 1.3399999999999999,
+          "z": 0.99,
+          "rotation": -90
+        },
+        {
+          "id": "f_oq6b1ci3ei",
+          "specId": "chair",
+          "x": 0.5399999999999999,
+          "z": 0.99,
+          "rotation": 90
+        },
+        {
+          "id": "f_y61cjmi3ei",
+          "specId": "shelf",
+          "x": -1.29,
+          "z": -1.54,
+          "rotation": 0
+        },
+        {
+          "id": "f_0vrizhi3ei",
+          "specId": "lamp-floor",
+          "x": 1.225,
+          "z": -1.5,
+          "rotation": 0
+        }
+      ]
+    }
+  ]
+}

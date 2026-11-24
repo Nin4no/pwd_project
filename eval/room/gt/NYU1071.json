@@ -1,0 +1,89 @@
+{
+  "id": "NYU1071",
+  "source": "SUN RGB-D (NYUv2)",
+  "license": "Princeton Custom Academic License (Non-commercial research)",
+  "image": "data/NYU1071.jpg",
+  "scene_type": "bedroom",
+  "cameraIntrinsics": {
+    "fx": 518.85,
+    "fy": 518.85,
+    "cx": 284,
+    "cy": 208,
+    "width": 561,
+    "height": 427
+  },
+  "room": {
+    "width_m": 4.3,
+    "depth_m": 5.5,
+    "height_m": 1.6,
+    "provenance": {
+      "width_m": "ground_truth_layout",
+      "depth_m": "estimated_from_visible_extent",
+      "height_m": "ground_truth_layout"
+    }
+  },
+  "openings": [],
+  "items": [
+    {
+      "category": "bed",
+      "size_m": [
+        2.05,
+        1.6,
+        0.95
+      ],
+      "pos_m": [
+        -0.5,
+        -0.05
+      ],
+      "rotation_deg": 0,
+      "provenance": {
+        "category": "ground_truth_label",
+        "size_m": "ground_truth_bbox",
+        "pos_m": "ground_truth_bbox",
+        "rotation_deg": "ground_truth_bbox"
+      }
+    },
+    {
+      "category": "storage",
+      "size_m": [
+        0.7,
+        0.45,
+        0.55
+      ],
+      "pos_m": [
+        1.15,
+        0
+      ],
+      "rotation_deg": 0,
+      "provenance": {
+        "category": "ground_truth_label",
+        "size_m": "ground_truth_bbox",
+        "pos_m": "ground_truth_bbox",
+        "rotation_deg": "ground_truth_bbox"
+      }
+    },
+    {
+      "category": "storage",
+      "size_m": [
+        0.55,
+        0.55,
+        0.5
+      ],
+      "pos_m": [
+        -0.75,
+        -1.7
+      ],
+      "rotation_deg": 0,
+      "provenance": {
+        "category": "ground_truth_label",
+        "size_m": "ground_truth_bbox",
+        "pos_m": "ground_truth_bbox",
+        "rotation_deg": "ground_truth_bbox"
+      }
+    }
+  ],
+  "missing": [
+    "openings.window",
+    "openings.door"
+  ]
+}

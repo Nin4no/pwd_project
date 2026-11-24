@@ -1,0 +1,73 @@
+{
+  "id": "NYU0216",
+  "source": "roomVision.analyzeRoomPixels (heuristic baseline)",
+  "image": "data/NYU0216.jpg",
+  "room": {
+    "width_m": 3.2,
+    "depth_m": 3.8,
+    "height_m": 2.4
+  },
+  "openings": [
+    {
+      "type": "door",
+      "wall": "S",
+      "offset_m": 1.75,
+      "width_m": 0.9,
+      "height_m": 2
+    }
+  ],
+  "items": [
+    {
+      "category": "seating",
+      "size_m": [
+        0.6,
+        0.6,
+        0.7
+      ],
+      "pos_m": [
+        0.05,
+        -0.1
+      ],
+      "rotation_deg": 0
+    },
+    {
+      "category": "storage",
+      "size_m": [
+        0.5,
+        0.45,
+        0.25
+      ],
+      "pos_m": [
+        1.4,
+        1.4
+      ],
+      "rotation_deg": -90
+    },
+    {
+      "category": "bed",
+      "size_m": [
+        1,
+        2,
+        0.25
+      ],
+      "pos_m": [
+        1.1,
+        0.15
+      ],
+      "rotation_deg": 0
+    },
+    {
+      "category": "storage",
+      "size_m": [
+        0.5,
+        0.45,
+        0.4
+      ],
+      "pos_m": [
+        -1.35,
+        -1.7
+      ],
+      "rotation_deg": 0
+    }
+  ]
+}

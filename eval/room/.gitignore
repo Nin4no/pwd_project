@@ -1,0 +1,7 @@
+data/
+*.cache
+.cache/
+temp/
+predictions/gemini/
+predictions/depth*/
+

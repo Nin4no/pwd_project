@@ -1,0 +1,74 @@
+{
+  "id": "NYU0391",
+  "source": "roomVision.analyzeRoomPixels (heuristic baseline)",
+  "image": "data/NYU0391.jpg",
+  "room": {
+    "width_m": 3.9,
+    "depth_m": 3.8,
+    "height_m": 2.4
+  },
+  "openings": [
+    {
+      "type": "window",
+      "wall": "N",
+      "offset_m": 2.05,
+      "width_m": 1.2,
+      "height_m": 1.2
+    },
+    {
+      "type": "window",
+      "wall": "N",
+      "offset_m": 0.75,
+      "width_m": 0.8,
+      "height_m": 1.2
+    },
+    {
+      "type": "door",
+      "wall": "S",
+      "offset_m": 1.95,
+      "width_m": 0.9,
+      "height_m": 2
+    }
+  ],
+  "items": [
+    {
+      "category": "storage",
+      "size_m": [
+        0.5,
+        0.45,
+        0.6
+      ],
+      "pos_m": [
+        -1.7,
+        -1.35
+      ],
+      "rotation_deg": 90
+    },
+    {
+      "category": "storage",
+      "size_m": [
+        0.6,
+        0.6,
+        1.9
+      ],
+      "pos_m": [
+        -0.45,
+        -0.5
+      ],
+      "rotation_deg": 0
+    },
+    {
+      "category": "bed",
+      "size_m": [
+        1.5,
+        2,
+        0.8
+      ],
+      "pos_m": [
+        -1.2,
+        0.85
+      ],
+      "rotation_deg": 0
+    }
+  ]
+}

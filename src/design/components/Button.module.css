@@ -1,0 +1,133 @@
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  border: 0;
+  border-radius: var(--radius);
+  font-weight: 600;
+  letter-spacing: var(--ls-body);
+  /* 광학적 수직 가운데: 줄 높이를 글자 크기로 맞추고(1), 한글(Pretendard) 라벨이
+     기하학적으로는 ~0.3px 위에 떠 보이는 것을 1px 내려 보정 (apple-design §16 Craft) */
+  line-height: 1;
+  padding-top: 1px;
+  white-space: nowrap;
+  user-select: none;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    background-color var(--dur) var(--ease-out),
+    color var(--dur) var(--ease-out);
+}
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+.btn.loading:disabled {
+  opacity: 1;
+  cursor: progress;
+}
+.block {
+  display: flex;
+  width: 100%;
+}
+
+.sm {
+  height: 34px;
+  padding: 1px var(--sp-3) 0;
+  font-size: var(--fs-sub);
+  border-radius: var(--r-sm);
+}
+.md {
+  height: 44px;
+  padding: 1px var(--sp-4) 0;
+  font-size: 14px;
+}
+.lg {
+  height: 52px;
+  padding: 1px var(--sp-6) 0;
+  font-size: var(--fs-body);
+}
+
+.primary {
+  background: var(--primary);
+  color: var(--surface);
+}
+.primary:hover:not(:disabled) {
+  background: var(--primary-dark);
+}
+.brand {
+  background: var(--brand);
+  color: var(--brand-ink);
+}
+.brand:hover:not(:disabled) {
+  background: var(--brand-dark);
+}
+.secondary {
+  background: var(--grey-100);
+  color: var(--text-sub);
+}
+.secondary:hover:not(:disabled) {
+  background: var(--line);
+  color: var(--text);
+}
+.ghost {
+  background: transparent;
+  color: var(--text-sub);
+}
+.ghost:hover:not(:disabled) {
+  background: var(--grey-100);
+  color: var(--text);
+}
+.danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.danger:hover:not(:disabled) {
+  background: var(--danger);
+  color: var(--surface);
+}
+
+.inner {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-width: 0;
+}
+.loading .inner {
+  visibility: hidden;
+}
+.spin {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.icon {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+}
+.icon > svg {
+  width: 100%;
+  height: 100%;
+}
+.label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: none;
+  }
+  .btn:active:not(:disabled) {
+    transform: none;
+  }
+}

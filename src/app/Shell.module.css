@@ -1,0 +1,29 @@
+.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  /* 원본 하늘색(#AFDDEC) 반투명 막 아래 모눈종이(히어로와 같은 모눈)가 비치도록 */
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(
+      color-mix(in srgb, var(--page-bg) 70%, transparent),
+      color-mix(in srgb, var(--page-bg) 70%, transparent)
+    ),
+    linear-gradient(var(--grid-major) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-major) 1px, transparent 1px),
+    linear-gradient(var(--grid-minor) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-minor) 1px, transparent 1px);
+  background-size: auto, 120px 120px, 120px 120px, 24px 24px, 24px 24px;
+}
+.content {
+  flex: 1 0 auto;
+  width: 100%;
+  min-width: 0;
+}
+.footer {
+  padding: var(--sp-6) var(--sp-6) calc(var(--sp-6) + env(safe-area-inset-bottom, 0px));
+  border-top: 1px solid var(--line);
+  font-size: var(--fs-caption);
+  color: var(--muted);
+  text-align: center;
+}
