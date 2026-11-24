@@ -7,6 +7,7 @@ import {
   type FurnitureCategory,
   type ModuleSpec,
 } from "./blueprintSchema";
+import { guardHintName, HINT_NAME_BOUNDARY, wrapHintName } from "./promptGuard";
 
 export interface FurniturePhotoOptions {
   hintName?: string;
@@ -54,6 +55,7 @@ export const furniturePhotoSchema = {
 };
 
 export function buildFurniturePhotoSystemPrompt(opts: FurniturePhotoOptions = {}): string {
+  const safeHintName = guardHintName(opts.hintName);
   const hints: string[] = [];
   if (opts.knownWidthCm !== undefined) {
     const exactW = Math.round((opts.knownWidthCm / 100) * 1000) / 1000;
@@ -61,8 +63,8 @@ export function buildFurniturePhotoSystemPrompt(opts: FurniturePhotoOptions = {}
       `Known real-world width constraint: ${opts.knownWidthCm} cm (${exactW} m). Treat ${exactW} m as the exact root.w and scale root.d and root.h proportionally.`,
     );
   }
-  if (opts.hintName?.trim()) {
-    hints.push(`User hint for furniture name: "${opts.hintName.trim()}". Use this unless clearly contradicted by the photo.`);
+  if (safeHintName) {
+    hints.push(`User hint for furniture name: ${wrapHintName(safeHintName)}. Use this unless clearly contradicted by the photo.`);
   }
   if (opts.preferredCategory) {
     hints.push(`User preferred category: "${opts.preferredCategory}". Use this unless clearly contradicted by the photo.`);
@@ -77,6 +79,7 @@ Inspect the photo carefully to infer:
 - confidence score from 0 to 1 reflecting visual clarity and occlusion
 
 ${BLUEPRINT_MODULE_RULES}${hintBlock}
+${HINT_NAME_BOUNDARY}
 Respond JSON only matching the schema.`;
 }
 
@@ -167,23 +170,27 @@ export async function inferFurniturePhoto(
   imageDataUrl: string,
   opts: FurniturePhotoOptions = {},
 ): Promise<FurniturePhotoResult> {
+  const safeHintName = guardHintName(opts.hintName);
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new HttpError(503, "AI service is not configured.");
 
   const model = process.env.GEMINI_MODEL || "gemini-3.5-flash";
   const mimeType = imageDataUrl.slice(5, imageDataUrl.indexOf(";"));
   const data = imageDataUrl.slice(imageDataUrl.indexOf(",") + 1);
-  const systemPrompt = buildFurniturePhotoSystemPrompt(opts);
+  const systemPrompt = buildFurniturePhotoSystemPrompt({
+    ...opts,
+    hintName: safeHintName,
+  });
 
   const userHints = [
-    opts.hintName?.trim() ? `name hint: ${opts.hintName.trim()}` : "",
+    safeHintName ? `name hint: ${wrapHintName(safeHintName)}` : "",
     opts.preferredCategory ? `category hint: ${opts.preferredCategory}` : "",
     opts.knownWidthCm !== undefined ? `known width: ${opts.knownWidthCm} cm` : "",
   ]
     .filter(Boolean)
     .join(", ");
   const userText = userHints
-    ? `Extract the target furniture blueprint from this photo (${userHints}).`
+    ? `${safeHintName ? `${HINT_NAME_BOUNDARY}\n` : ""}Extract the target furniture blueprint from this photo (${userHints}).`
     : "Extract the target furniture blueprint from this photo.";
 
   const timeoutMs = Number(process.env.GEMINI_STREAM_TIMEOUT_MS) || 120_000;

@@ -86,10 +86,12 @@
   width: 100%;
 }
 .heroNote {
-  max-width: 52ch;
+  max-width: 56ch;
   font-size: var(--fs-sub);
-  line-height: 1.6;
+  line-height: 1.65;
   color: var(--text-sub);
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 .ctas {
   display: flex;

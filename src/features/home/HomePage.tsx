@@ -206,7 +206,10 @@ export default function HomePage() {
                 <span className={`${s.eyebrowMeta} num`}>1 : 50</span>
               </div>
             </div>
-            <p className={s.heroNote}>설치 없이 브라우저에서 바로 — 모눈종이에 쓱 그리면 실제 비율의 3D 방이 완성됩니다.</p>
+            <p className={s.heroNote}>
+              설치 없이 브라우저에서 바로 —<br />
+              모눈종이에 쓱 그리면 실제 비율의 3D 방이 완성됩니다.
+            </p>
             <div className={s.ctas}>
               <Button variant="brand" size="lg" className={s.primaryCta} onClick={drawPlan}>
                 새 방 만들기
