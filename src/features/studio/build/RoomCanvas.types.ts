@@ -14,6 +14,8 @@ export interface SceneApi {
   snapshotTo?: (target: HTMLCanvasElement) => boolean;
   /** 특정 배치 가구로 카메라 포커스 이동 */
   focusFurniture?: (id: string) => void;
+  /** 카메라를 초기 시점으로 리셋 (`immediate: true` 시 애니메이션 없이 즉시 복원) */
+  resetView?: (opts?: { immediate?: boolean }) => void;
 }
 
 export interface RoomCanvasProps {
@@ -25,11 +27,14 @@ export interface RoomCanvasProps {
   lightingPreset?: LightingPreset;
   animate?: boolean;
   keyboardEnabled?: boolean;
+  zoomEnabled?: boolean;
   apiRef?: MutableRefObject<SceneApi | null>;
   onSelect?: (id: string | null) => void;
   onMove?: (id: string, x: number, z: number) => void;
   onDragEnd?: (id: string) => void;
   onWalkLockChange?: (locked: boolean) => void;
+  /** 사용자가 3D 카메라를 직접 회전(드래그)할 때 호출 */
+  onRotate?: () => void;
   /** 방 범위 카탈로그(AI 가구 포함). 없으면 전역 카탈로그 */
   catalog?: CatalogReader;
 }

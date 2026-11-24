@@ -8,18 +8,24 @@ import { useCatalog } from '../../app/providers';
 import { formatPrice, roomArea } from '../rooms/roomMeta';
 import s from './RoomViewer.module.css';
 
+export interface RoomViewer3DProps {
+  room: Room;
+  showControls?: boolean;
+  keyboardEnabled?: boolean;
+  zoomEnabled?: boolean;
+  apiRef?: MutableRefObject<SceneApi | null>;
+  onRotate?: () => void;
+}
+
 /** 읽기 전용 3D 뷰어 (쇼룸 상세 / 공유 링크). WebGL RoomCanvas 그대로 사용 */
 export function RoomViewer3D({
   room,
   showControls = true,
   keyboardEnabled = true,
+  zoomEnabled = true,
   apiRef,
-}: {
-  room: Room;
-  showControls?: boolean;
-  keyboardEnabled?: boolean;
-  apiRef?: MutableRefObject<SceneApi | null>;
-}) {
+  onRotate,
+}: RoomViewer3DProps) {
   const [mode, setMode] = useState<CameraMode>('orbit');
   const [locked, setLocked] = useState(false);
   return (
@@ -28,7 +34,9 @@ export function RoomViewer3D({
         room={room}
         cameraMode={mode}
         keyboardEnabled={keyboardEnabled}
+        zoomEnabled={zoomEnabled}
         onWalkLockChange={setLocked}
+        onRotate={onRotate}
         apiRef={apiRef}
       />
       {showControls && mode === 'walk' && !locked ? (

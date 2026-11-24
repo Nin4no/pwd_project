@@ -8,6 +8,7 @@ export interface SceneApi {
   pickGround(clientX: number, clientY: number): { x: number; z: number } | null;
   capture(): string | null;
   focusFurniture?(id: string): void;
+  resetView?(opts?: { immediate?: boolean }): void;
 }
 export type SceneRef = { current: SceneApi | null };
 

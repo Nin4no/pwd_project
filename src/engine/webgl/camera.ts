@@ -59,10 +59,12 @@ export class CameraController {
   mode: CameraMode = 'orbit';
   enabled = true;
   keyboardEnabled = true;
+  zoomEnabled = true;
   roomSize = 5;
   walkBounds: WalkBounds | null = null;
   onWalkLockChange?: (locked: boolean) => void;
   onFocusRequestSelected?: () => void;
+  onRotate?: () => void;
 
   // 구면 좌표 (orbit/top)
   private theta = Math.atan2(0.9, 1.1); // 수평각
@@ -101,17 +103,23 @@ export class CameraController {
     if (document.pointerLockElement === this.canvas && mode !== 'walk') {
       document.exitPointerLock?.();
     }
-    if (mode === 'orbit') {
+    this.applyInitialPose();
+  }
+
+  private applyInitialPose(): void {
+    const s = this.roomSize;
+    if (this.mode === 'orbit') {
       this.camera.target.set(0, 0, 0);
       this.camera.up.set(0, 1, 0);
-      this.camera.position.set(roomSize * 0.9, roomSize * 1.0, roomSize * 1.1);
+      this.camera.position.set(s * 0.9, s * 1.0, s * 1.1);
       this.syncSphericalFromCamera();
-    } else if (mode === 'top') {
+    } else if (this.mode === 'top') {
       this.camera.target.set(0, 0, 0);
       this.camera.up.set(0, 1, 0);
-      this.camera.position.set(0, roomSize * 1.9, 0.001);
+      this.camera.position.set(0, s * 1.9, 0.001);
       this.syncSphericalFromCamera();
     } else {
+      this.camera.up.set(0, 1, 0);
       this.camera.position.set(0, 1.6, 0);
       this.walkYaw = 0;
       this.walkPitch = 0;
@@ -153,7 +161,7 @@ export class CameraController {
   focusOn(target: Vec3, frameDist?: number): void {
     if (this.mode === 'walk') return;
     let pos: Vec3 | undefined;
-    if (frameDist) {
+    if (frameDist && this.zoomEnabled) {
       const dir = this.camera.position.clone().sub(this.camera.target);
       const d = Math.max(frameDist, Math.min(Math.max(frameDist, 6), dir.len()));
       pos = target.clone().add(dir.normalize().scale(d));
@@ -161,7 +169,13 @@ export class CameraController {
     this.goal = { target: target.clone(), pos };
   }
 
-  resetView(): void {
+  resetView(opts?: { immediate?: boolean }): void {
+    if (opts?.immediate) {
+      this.goal = null;
+      this.cancelDrag();
+      this.applyInitialPose();
+      return;
+    }
     if (this.mode === 'walk') return;
     const s = this.roomSize;
     const pos =
@@ -269,6 +283,7 @@ export class CameraController {
   }
 
   private zoomByFactor(factor: number, clientX?: number, clientY?: number): void {
+    if (!this.zoomEnabled) return;
     const minD = 1.5;
     const maxD = this.roomSize * 4;
     const oldR = this.radius;
@@ -320,7 +335,7 @@ export class CameraController {
         } else if (e.button === 1) {
           this.dragAction = 'pan';
         } else if (e.button === 2) {
-          this.dragAction = e.altKey ? 'dolly' : 'rotate';
+          this.dragAction = e.altKey ? (this.zoomEnabled ? 'dolly' : 'none') : 'rotate';
         }
       }
       this.lastX = e.clientX;
@@ -345,16 +360,23 @@ export class CameraController {
       this.lastY = e.clientY;
 
       if (this.dragAction === 'rotate') {
-        const rotSpeed = 0.0065;
-        this.theta -= dx * rotSpeed;
-        const maxPolar = Math.PI / 2 - 0.05;
-        this.phi = Math.max(0.05, Math.min(maxPolar, this.phi - dy * rotSpeed));
-        this.applySphericalToCamera();
-        this.camera.updateMatrices();
+        if (dx !== 0 || dy !== 0) {
+          const rotSpeed = 0.0065;
+          this.theta -= dx * rotSpeed;
+          const maxPolar = Math.PI / 2 - 0.05;
+          this.phi = Math.max(0.05, Math.min(maxPolar, this.phi - dy * rotSpeed));
+          this.applySphericalToCamera();
+          this.camera.updateMatrices();
+          this.onRotate?.();
+        }
       } else if (this.dragAction === 'pan') {
         this.panByPixels(dx, dy);
         this.camera.updateMatrices();
       } else if (this.dragAction === 'dolly') {
+        if (!this.zoomEnabled) {
+          this.dragAction = 'none';
+          return;
+        }
         const factor = Math.pow(0.995, -dy);
         this.zoomByFactor(factor);
       }
@@ -365,7 +387,7 @@ export class CameraController {
     };
 
     const onWheel = (e: WheelEvent) => {
-      if (this.mode === 'walk' || !this.enabled) return;
+      if (this.mode === 'walk' || !this.enabled || !this.zoomEnabled) return;
       e.preventDefault();
       this.goal = null;
       const factor = e.deltaY > 0 ? 1.1 : 1 / 1.1;
@@ -418,6 +440,7 @@ export class CameraController {
     el.addEventListener('pointerdown', onPointerDown);
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerUp);
     el.addEventListener('wheel', onWheel, { passive: false });
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
@@ -429,6 +452,7 @@ export class CameraController {
       el.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
+      window.removeEventListener('pointercancel', onPointerUp);
       el.removeEventListener('wheel', onWheel);
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);

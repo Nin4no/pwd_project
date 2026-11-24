@@ -12,6 +12,10 @@ import { usePostActions } from '../showroom/usePostActions';
 import type { SceneApi } from '../studio/build/RoomCanvas.types';
 import PopularPosts from './PopularPosts';
 import RecentRooms from './RecentRooms';
+import {
+  createShowcaseAutoSlideController,
+  type ShowcaseAutoSlideController,
+} from './showcaseAutoSlide';
 import TemplateChips, { type RoomTemplate } from './TemplateChips';
 import page from '../../app/Page.module.css';
 import s from './Home.module.css';
@@ -41,6 +45,8 @@ export default function HomePage() {
   }, [activePost.id, activeLiked]);
 
   const viewerApiRef = useRef<SceneApi | null>(null);
+  const autoSlideCtrlRef = useRef<ShowcaseAutoSlideController | null>(null);
+  const prevPostIdRef = useRef(activePost.id);
   const stageRef = useRef<HTMLDivElement | null>(null);
   const outgoingRef = useRef<HTMLCanvasElement | null>(null);
   const captionInnerRef = useRef<HTMLDivElement | null>(null);
@@ -51,9 +57,34 @@ export default function HomePage() {
   const dirRef = useRef<'next' | 'prev'>('next');
   const hasSnapshotRef = useRef(false);
 
+  useEffect(() => {
+    const ctrl = createShowcaseAutoSlideController({
+      onPauseChange: setPaused,
+    });
+    autoSlideCtrlRef.current = ctrl;
+    const handleRelease = () => ctrl.onPointerUpOrCancel();
+    window.addEventListener('pointerup', handleRelease);
+    window.addEventListener('pointercancel', handleRelease);
+    window.addEventListener('blur', handleRelease);
+    return () => {
+      window.removeEventListener('pointerup', handleRelease);
+      window.removeEventListener('pointercancel', handleRelease);
+      window.removeEventListener('blur', handleRelease);
+      ctrl.dispose();
+      if (autoSlideCtrlRef.current === ctrl) {
+        autoSlideCtrlRef.current = null;
+      }
+    };
+  }, []);
+
+  const handleShowcaseRotate = useCallback(() => {
+    autoSlideCtrlRef.current?.onRotate();
+  }, []);
+
   const stepSlide = useCallback(
     (dir: 'next' | 'prev') => {
       if (totalSlides <= 1) return;
+      autoSlideCtrlRef.current?.onSlideChanged();
       const outEl = outgoingRef.current;
       hasSnapshotRef.current = Boolean(outEl && viewerApiRef.current?.snapshotTo?.(outEl));
       dirRef.current = dir;
@@ -64,6 +95,12 @@ export default function HomePage() {
 
   const goPrev = () => stepSlide('prev');
   const goNext = () => stepSlide('next');
+
+  useLayoutEffect(() => {
+    if (prevPostIdRef.current === activePost.id) return;
+    prevPostIdRef.current = activePost.id;
+    viewerApiRef.current?.resetView?.({ immediate: true });
+  }, [activePost.id]);
 
   useEffect(() => {
     if (paused || totalSlides <= 1) return;
@@ -184,10 +221,9 @@ export default function HomePage() {
           <div
             className={s.showcase}
             aria-label="실시간 3D 공간 미리보기"
-            onPointerEnter={() => setPaused(true)}
-            onPointerLeave={() => setPaused(false)}
-            onPointerDown={() => setPaused(true)}
-            onPointerUp={() => setPaused(false)}
+            onPointerEnter={(e) => autoSlideCtrlRef.current?.onPointerEnter(e.pointerType)}
+            onPointerLeave={() => autoSlideCtrlRef.current?.onPointerLeave()}
+            onPointerDown={() => autoSlideCtrlRef.current?.onPointerDown()}
           >
             <canvas ref={outgoingRef} className={s.showcaseOutgoing} aria-hidden="true" />
             <div ref={stageRef} className={s.showcaseStage}>
@@ -202,6 +238,8 @@ export default function HomePage() {
                   room={activePost.room}
                   showControls={false}
                   keyboardEnabled={false}
+                  zoomEnabled={false}
+                  onRotate={handleShowcaseRotate}
                   apiRef={viewerApiRef}
                 />
               </Suspense>

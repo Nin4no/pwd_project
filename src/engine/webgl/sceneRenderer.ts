@@ -179,6 +179,14 @@ export class RoomWebGLRenderer {
     this.controller.focusOn(new Vec3(f.x, elev + h / 2, f.z), Math.max(2, r * 2.5));
   }
 
+  resetView(opts?: { immediate?: boolean }): void {
+    this.focusedId = null;
+    this.controller.resetView(opts);
+    if (opts?.immediate) {
+      this.render(0);
+    }
+  }
+
   private syncRoomGeometry(room: Room): void {
     const gl = this.gl;
     const off = roomOffset(room.walls);

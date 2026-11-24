@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { FURNITURE } from '../../../data/furniture';
 import { DIALOG_OPEN_EVENT } from '../../../design/components/useDialog';
 import { getEffectiveSize } from '../../../engine/geometry';
@@ -38,11 +38,13 @@ export default function RoomCanvas({
   lightingPreset = 'daylight',
   animate = false,
   keyboardEnabled = true,
+  zoomEnabled = true,
   apiRef,
   onSelect,
   onMove,
   onDragEnd,
   onWalkLockChange,
+  onRotate,
   catalog,
 }: RoomCanvasProps) {
   const getSpec = catalog ? (id: string) => catalog.get(id) : defaultGetSpec;
@@ -50,6 +52,8 @@ export default function RoomCanvas({
   const labelRef = useRef<HTMLDivElement | null>(null);
   const rendererRef = useRef<RoomWebGLRenderer | null>(null);
   const resetInteractionRef = useRef<(() => void) | null>(null);
+  const onRotateRef = useRef(onRotate);
+  onRotateRef.current = onRotate;
 
   // 최신 콜백 및 상태 참조 유지 (렌더 루프 재시작 방지)
   const stateRef = useRef({
@@ -84,6 +88,7 @@ export default function RoomCanvas({
 
     const renderer = new RoomWebGLRenderer(canvas, stateRef.current.room, animate, stateRef.current.getSpec);
     renderer.controller.keyboardEnabled = keyboardEnabled;
+    renderer.controller.zoomEnabled = zoomEnabled;
     rendererRef.current = renderer;
 
     renderer.controller.onWalkLockChange = (locked) => {
@@ -92,6 +97,9 @@ export default function RoomCanvas({
     renderer.controller.onFocusRequestSelected = () => {
       renderer.focusSelected();
     };
+    renderer.controller.onRotate = () => {
+      onRotateRef.current?.();
+    };
 
     if (apiRef) {
       apiRef.current = {
@@ -99,6 +107,7 @@ export default function RoomCanvas({
         capture: () => renderer.capture(),
         snapshotTo: (target) => renderer.snapshotTo(target),
         focusFurniture: (id) => renderer.focusFurniture(id),
+        resetView: (opts) => renderer.resetView(opts),
       };
     }
 
@@ -159,8 +168,8 @@ export default function RoomCanvas({
     if (catalog) rendererRef.current?.setSpecLookup((id) => catalog.get(id));
   }, [catalog]);
 
-  // Room 데이터 동기화
-  useEffect(() => {
+  // Room 데이터 동기화 (상위 레이아웃 이펙트의 즉시 resetView가 새 roomSize를 읽도록 paint 전 동기 반영)
+  useLayoutEffect(() => {
     rendererRef.current?.setRoom(room);
   }, [room]);
 
@@ -180,6 +189,11 @@ export default function RoomCanvas({
   useEffect(() => {
     if (rendererRef.current) rendererRef.current.controller.keyboardEnabled = keyboardEnabled;
   }, [keyboardEnabled]);
+
+  // 줌(휠/돌리/포커스 줌) 허용 동기화
+  useEffect(() => {
+    if (rendererRef.current) rendererRef.current.controller.zoomEnabled = zoomEnabled;
+  }, [zoomEnabled]);
 
   // 조명 프리셋 동기화
   useEffect(() => {
