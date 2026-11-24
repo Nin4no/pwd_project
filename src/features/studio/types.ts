@@ -78,7 +78,7 @@ export interface StudioActions {
 
   /* 가구 편집 — domain/room 순수 함수 위임 */
   place(specId: string, at: { x: number; z: number }, rotation?: number): PlacedFurniture | null;
-  patch(id: string, patch: FurniturePatch, opts?: { live?: boolean }): void;
+  patch(id: string, patch: FurniturePatch, opts?: { live?: boolean; skipWallSnap?: boolean }): void;
   remove(id: string): void;
   duplicate(id: string): void;
   /**
@@ -114,5 +114,6 @@ export const STUDIO_SHORTCUTS: ReadonlyArray<{ keys: string; label: string }> = 
   { keys: 'Delete', label: '선택 가구 삭제' },
   { keys: 'Ctrl+D', label: '선택 가구 복제' },
   { keys: 'F', label: '선택 가구로 카메라 이동' },
+  { keys: 'Shift + 드래그', label: '가구 맞춤·밀착 스마트 정렬 (3D)' },
   { keys: 'Esc', label: '선택 해제 / 패널 닫기' },
 ];

@@ -78,14 +78,16 @@ export function createStudioStore(deps: StudioDeps): StoreApi<StudioStore> {
       set({ ...derived(next), history: beginLive(history, room), dirty: true });
       persistDraft(next);
     };
-    const editFurniture = (id: string, patch: FurniturePatch, isLive: boolean) => {
+    const editFurniture = (id: string, patch: FurniturePatch, isLive: boolean, skipWallSnap = false) => {
       const { room, snap } = get();
       if (!room) return;
       const cat = scoped(room);
       let next = updateFurniture(room, id, patch);
       if ('x' in patch || 'z' in patch || 'rotation' in patch || 'width' in patch || 'depth' in patch || 'height' in patch) {
-        const f = next.furniture.find((p) => p.id === id)!;
-        next = updateFurniture(next, id, snapPlaced(f, cat.get(f.specId), next.walls, snap));
+        const f = next.furniture.find((p) => p.id === id);
+        if (f) {
+          next = updateFurniture(next, id, snapPlaced(f, cat.get(f.specId), next.walls, skipWallSnap ? false : snap));
+        }
       }
       (isLive ? live : commit)(next);
     };
@@ -149,7 +151,9 @@ export function createStudioStore(deps: StudioDeps): StoreApi<StudioStore> {
         set({ selectedId: placed.id });
         return placed;
       },
-      patch(id, patch, opts) { editFurniture(id, patch, !!opts?.live); },
+      patch(id, patch, opts?: { live?: boolean; skipWallSnap?: boolean }) {
+        editFurniture(id, patch, !!opts?.live, !!opts?.skipWallSnap);
+      },
       remove(id) {
         const { room, selectedId } = get();
         if (!room) return;

@@ -30,7 +30,7 @@ export interface RoomCanvasProps {
   zoomEnabled?: boolean;
   apiRef?: MutableRefObject<SceneApi | null>;
   onSelect?: (id: string | null) => void;
-  onMove?: (id: string, x: number, z: number) => void;
+  onMove?: (id: string, x: number, z: number, opts?: { skipWallSnap?: boolean }) => void;
   onDragEnd?: (id: string) => void;
   onWalkLockChange?: (locked: boolean) => void;
   /** 사용자가 3D 카메라를 직접 회전(드래그)할 때 호출 */

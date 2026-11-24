@@ -46,7 +46,7 @@ export default function SceneView({ catalog, animate = false, editable = true }:
       apiRef={apiRef}
       catalog={scoped}
       onSelect={a.select}
-      onMove={(id, x, z) => a.patch(id, { x, z }, { live: true })}
+      onMove={(id, x, z, opts) => a.patch(id, { x, z }, { live: true, skipWallSnap: opts?.skipWallSnap })}
       onDragEnd={() => a.commitLive()}
       onWalkLockChange={a.setWalkLocked}
     />

@@ -138,6 +138,38 @@ test('patch 회전·크기, duplicate는 새 id 선택', async () => {
   assert.ok(Math.abs(d.x - g.x - 0.3) < 1e-6);
 });
 
+test('patch skipWallSnap: true는 벽 스냅 우회, false/생략은 벽 스냅 유지, wallMounted는 항상 벽 중심선 스냅', async () => {
+  const { store, s } = make([room()]);
+  await store.getState().load('r1');
+  // 기본 snap === true 상태 (4x3 방 → 좌측 벽 x=-2, 내측면 -1.94)
+  assert.equal(s().snap, true);
+  const spec = catalog.get('bed-single')!;
+  const wallSnappedX = -2 + 0.06 + spec.size[0] / 2;
+  const nearWallX = wallSnappedX + 0.12; // 벽에서 0.12m (< 0.25m threshold)
+
+  const bed = store.getState().place('bed-single', { x: 0, z: 0 })!;
+  // 1) skipWallSnap: true → 벽 스냅을 건너뛰고 좌표 그대로 유지
+  store.getState().patch(bed.id, { x: nearWallX, z: 0 }, { live: true, skipWallSnap: true });
+  const afterSkip = s().room!.furniture.find((p) => p.id === bed.id)!;
+  assert.ok(Math.abs(afterSkip.x - nearWallX) < 1e-6, `skipWallSnap=true면 벽 스냅 없이 유지 (got ${afterSkip.x})`);
+
+  // 2) skipWallSnap: false → 기존 벽 스냅 동작
+  store.getState().patch(bed.id, { x: nearWallX, z: 0 }, { live: true, skipWallSnap: false });
+  const afterFalse = s().room!.furniture.find((p) => p.id === bed.id)!;
+  assert.ok(Math.abs(afterFalse.x - wallSnappedX) < 1e-6, `skipWallSnap=false면 벽 스냅 (got ${afterFalse.x})`);
+
+  // 3) skipWallSnap 생략 → 기존 벽 스냅 동작
+  store.getState().patch(bed.id, { x: nearWallX, z: 0 }, { live: true });
+  const afterOmit = s().room!.furniture.find((p) => p.id === bed.id)!;
+  assert.ok(Math.abs(afterOmit.x - wallSnappedX) < 1e-6, `skipWallSnap 생략 시 벽 스냅 (got ${afterOmit.x})`);
+
+  // 4) wallMounted(창문)는 skipWallSnap: true여도 항상 가장 가까운 벽 중심선(z=-1.5)에 스냅
+  const win = store.getState().place('window-m', { x: 0, z: -1.5 })!;
+  store.getState().patch(win.id, { x: 0.2, z: -1.3 }, { live: true, skipWallSnap: true });
+  const afterWin = s().room!.furniture.find((p) => p.id === win.id)!;
+  assert.ok(Math.abs(afterWin.z - -1.5) < 1e-6, `wallMounted는 skipWallSnap=true여도 벽 중심선 유지 (got ${afterWin.z})`);
+});
+
 test('applyPlan: 문은 도면→3D 좌표 변환, 바닥 가구 유지, outside 파생', async () => {
   const { store, s } = make([room()]);
   await store.getState().load('r1');

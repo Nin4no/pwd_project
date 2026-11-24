@@ -33,6 +33,8 @@ import {
 import { computeWallDataList, roomOffset, type ComputedWallData } from './RoomMesh';
 import { computeFocusOccluders, type FocusOccludedSet } from './occlusion';
 import { LIGHTING_PRESETS, type LightingPreset } from './lighting';
+import type { AlignGuideSegment } from '../layout/alignSnap';
+import { AlignGuideLayer } from './alignGuideLayer';
 
 interface GpuFurniturePart {
   mesh: GpuMesh;
@@ -64,6 +66,7 @@ export class RoomWebGLRenderer {
   private litShader: ShaderProgram;
   private gridShader: ShaderProgram;
   private gridMesh: GpuMesh;
+  private alignGuideLayer: AlignGuideLayer;
   private modelMat = new Mat4();
 
   // 씬 상태
@@ -114,6 +117,7 @@ export class RoomWebGLRenderer {
     this.litShader = createLitShader(gl);
     this.gridShader = createGridShader(gl);
     this.gridMesh = new GpuMesh(gl, createPlaneXZGeometry(80, 80, -0.002));
+    this.alignGuideLayer = new AlignGuideLayer(gl);
 
     this.syncRoomGeometry(initialRoom);
     const size = this.computeRoomSize(initialRoom);
@@ -137,10 +141,19 @@ export class RoomWebGLRenderer {
     this.cutaway = mode !== 'walk';
     if (mode === 'walk') {
       this.focusedId = null;
+      this.alignGuideLayer.clear();
     }
     if (this.controller.mode !== mode) {
       this.controller.setMode(mode, this.computeRoomSize(this.room));
     }
+  }
+
+  setAlignGuides(guides: ReadonlyArray<AlignGuideSegment>): void {
+    this.alignGuideLayer.setGuides(guides);
+  }
+
+  clearAlignGuides(): void {
+    this.alignGuideLayer.clear();
   }
 
   setSelectionAndCollisions(selectedId: string | null, collisions?: Set<string>): void {
@@ -657,6 +670,15 @@ export class RoomWebGLRenderer {
       this.drawWall(w, op, riseScaleY);
     }
 
+    // 7.5. 가구 스마트 정렬 가이드 (Shift + 드래그)
+    gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LEQUAL);
+    gl.depthMask(false);
+    gl.enable(gl.BLEND);
+    gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+    gl.disable(gl.CULL_FACE);
+    this.alignGuideLayer.render(vp);
+
     gl.depthMask(true);
     gl.disable(gl.BLEND);
   }
@@ -712,6 +734,7 @@ export class RoomWebGLRenderer {
 
   dispose(): void {
     this.controller.dispose();
+    this.alignGuideLayer.dispose();
     this.gridMesh.dispose();
     this.floorMeshes.forEach((m) => m.dispose());
     this.floorMeshes = [];

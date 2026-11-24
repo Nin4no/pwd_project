@@ -1,7 +1,12 @@
-import { useEffect, useLayoutEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { FURNITURE } from '../../../data/furniture';
 import { DIALOG_OPEN_EVENT } from '../../../design/components/useDialog';
 import { getEffectiveSize } from '../../../engine/geometry';
+import {
+  alignHudEqual,
+  resolveDragAlignStep,
+  resolveDragIdleHud,
+} from '../../../engine/layout/alignSnap';
 import type { CameraMode } from '../../../engine/webgl/camera';
 import { Vec3 } from '../../../engine/webgl/math';
 import { RoomWebGLRenderer } from '../../../engine/webgl/sceneRenderer';
@@ -14,6 +19,7 @@ import {
   resolveHoverCursor,
   resolvePostDragCursor,
 } from './canvasCursor';
+import AlignSnapHud, { type AlignSnapHudStatus } from './AlignSnapHud';
 import SelectionLabel from './SelectionLabel';
 import type { RoomCanvasProps } from './RoomCanvas.types';
 import s from './RoomCanvas.module.css';
@@ -54,6 +60,8 @@ export default function RoomCanvas({
   const resetInteractionRef = useRef<(() => void) | null>(null);
   const onRotateRef = useRef(onRotate);
   onRotateRef.current = onRotate;
+  const [alignHud, setAlignHud] = useState<AlignSnapHudStatus | null>(null);
+  const alignHudRef = useRef<AlignSnapHudStatus | null>(null);
 
   // 최신 콜백 및 상태 참조 유지 (렌더 루프 재시작 방지)
   const stateRef = useRef({
@@ -211,14 +219,62 @@ export default function RoomCanvas({
     const renderer = rendererRef.current;
     if (!canvas || !renderer) return;
 
-    let draggingItem: { id: string; dx: number; dz: number; planeY: number } | null = null;
+    let draggingItem: {
+      id: string;
+      dx: number;
+      dz: number;
+      planeY: number;
+      wallMounted: boolean;
+      rawX: number;
+      rawZ: number;
+      hasMoved: boolean;
+    } | null = null;
+    let shiftHeld = false;
     let activePointerId: number | null = null;
     let downPos: { x: number; y: number; hitId: string | null } | null = null;
+
+    const updateAlignHud = (next: AlignSnapHudStatus | null) => {
+      if (alignHudEqual(alignHudRef.current, next)) return;
+      alignHudRef.current = next;
+      setAlignHud(next);
+    };
+
+    const applyDragPosition = (rawX: number, rawZ: number, useAlign: boolean) => {
+      if (!draggingItem) return;
+      const { room: curRoom, getSpec: curGetSpec, onMove: mv } = stateRef.current;
+      if (!useAlign || draggingItem.wallMounted) {
+        renderer.clearAlignGuides();
+        mv?.(draggingItem.id, rawX, rawZ, { skipWallSnap: false });
+        updateAlignHud(resolveDragIdleHud(draggingItem.wallMounted, false));
+        return;
+      }
+      const latestItem = curRoom.furniture.find((it) => it.id === draggingItem!.id);
+      if (!latestItem) {
+        renderer.clearAlignGuides();
+        mv?.(draggingItem.id, rawX, rawZ, { skipWallSnap: false });
+        updateAlignHud(null);
+        return;
+      }
+      const step = resolveDragAlignStep({
+        dragging: latestItem,
+        rawX,
+        rawZ,
+        shiftHeld: true,
+        items: curRoom.furniture,
+        getSpec: curGetSpec,
+      });
+      renderer.setAlignGuides(step.guides);
+      mv?.(draggingItem.id, step.x, step.z, { skipWallSnap: step.skipWallSnap });
+      updateAlignHud(step.hud);
+    };
 
     const finishDrag = (pointerId?: number) => {
       if (!draggingItem) return;
       const finishedId = draggingItem.id;
       draggingItem = null;
+      shiftHeld = false;
+      renderer.clearAlignGuides();
+      updateAlignHud(null);
       renderer.controller.enabled = true;
       const releaseId = pointerId ?? activePointerId;
       if (releaseId !== null && canvas.hasPointerCapture(releaseId)) {
@@ -233,6 +289,9 @@ export default function RoomCanvas({
       if (draggingItem) {
         finishDrag();
       } else {
+        shiftHeld = false;
+        renderer.clearAlignGuides();
+        updateAlignHud(null);
         resetRoomCanvasCursor({ canvas, body: document.body });
       }
       downPos = null;
@@ -252,8 +311,9 @@ export default function RoomCanvas({
       if (picked && ed) {
         sel?.(picked.item.id);
         const { item, spec } = picked;
-        const elev = spec.wallMounted ? spec.elevation ?? 0 : 0;
-        const planeY = spec.wallMounted ? elev + spec.size[2] / 2 : 0;
+        const wallMounted = Boolean(spec.wallMounted);
+        const elev = wallMounted ? spec.elevation ?? 0 : 0;
+        const planeY = wallMounted ? elev + spec.size[2] / 2 : 0;
         const hitPt = renderer.pickHorizontalPlane(e.clientX, e.clientY, planeY);
         if (hitPt) {
           draggingItem = {
@@ -261,18 +321,24 @@ export default function RoomCanvas({
             dx: hitPt.x - item.x,
             dz: hitPt.z - item.z,
             planeY,
+            wallMounted,
+            rawX: item.x,
+            rawZ: item.z,
+            hasMoved: false,
           };
+          shiftHeld = e.shiftKey;
           activePointerId = e.pointerId;
           renderer.controller.enabled = false;
           renderer.controller.cancelDrag();
           canvas.setPointerCapture(e.pointerId);
           applyDragCursor({ canvas, body: document.body });
+          updateAlignHud(resolveDragIdleHud(wallMounted, shiftHeld));
         }
       }
     };
 
     const onPointerMove = (e: PointerEvent) => {
-      const { editable: ed, cameraMode: mode, onMove: mv } = stateRef.current;
+      const { editable: ed, cameraMode: mode } = stateRef.current;
       if (draggingItem) {
         if (!ed || mode === 'walk' || hasOpenModalDialog()) {
           finishDrag(e.pointerId);
@@ -280,7 +346,11 @@ export default function RoomCanvas({
         }
         const hitPt = renderer.pickHorizontalPlane(e.clientX, e.clientY, draggingItem.planeY);
         if (hitPt) {
-          mv?.(draggingItem.id, hitPt.x - draggingItem.dx, hitPt.z - draggingItem.dz);
+          draggingItem.rawX = hitPt.x - draggingItem.dx;
+          draggingItem.rawZ = hitPt.z - draggingItem.dz;
+          draggingItem.hasMoved = true;
+          shiftHeld = e.shiftKey;
+          applyDragPosition(draggingItem.rawX, draggingItem.rawZ, shiftHeld);
         }
         return;
       }
@@ -298,6 +368,29 @@ export default function RoomCanvas({
         () => Boolean(renderer.pickFurniture(e.clientX, e.clientY)),
       );
       applyCanvasHoverCursor(canvas, hoverCursor);
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (!draggingItem || draggingItem.wallMounted || e.key !== 'Shift' || e.repeat) return;
+      if (shiftHeld) return;
+      shiftHeld = true;
+      if (draggingItem.hasMoved) {
+        applyDragPosition(draggingItem.rawX, draggingItem.rawZ, true);
+      } else {
+        updateAlignHud(resolveDragIdleHud(false, true));
+      }
+    };
+
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (!draggingItem || draggingItem.wallMounted || e.key !== 'Shift') return;
+      if (!shiftHeld) return;
+      shiftHeld = false;
+      if (draggingItem.hasMoved) {
+        applyDragPosition(draggingItem.rawX, draggingItem.rawZ, false);
+      } else {
+        renderer.clearAlignGuides();
+        updateAlignHud(resolveDragIdleHud(false, false));
+      }
     };
 
     const onPointerLeave = () => {
@@ -367,6 +460,8 @@ export default function RoomCanvas({
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
     window.addEventListener('pointercancel', onPointerCancel);
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('keyup', onKeyUp);
     window.addEventListener('blur', resetInteraction);
     window.addEventListener(DIALOG_OPEN_EVENT, resetInteraction);
 
@@ -377,8 +472,14 @@ export default function RoomCanvas({
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
       window.removeEventListener('pointercancel', onPointerCancel);
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('keyup', onKeyUp);
       window.removeEventListener('blur', resetInteraction);
       window.removeEventListener(DIALOG_OPEN_EVENT, resetInteraction);
+      renderer.clearAlignGuides();
+      shiftHeld = false;
+      alignHudRef.current = null;
+      setAlignHud(null);
       resetInteractionRef.current = null;
       resetRoomCanvasCursor({ canvas, body: document.body });
     };
@@ -396,6 +497,7 @@ export default function RoomCanvas({
       <div ref={labelRef} className={s.label}>
         {selectedSpec && selectedEffSize && <SelectionLabel spec={selectedSpec} size={selectedEffSize} colliding={isColliding} />}
       </div>
+      {editable && <AlignSnapHud status={alignHud} />}
     </div>
   );
 }
