@@ -1,5 +1,6 @@
 import express, { type Express } from "express";
 import cors from "cors";
+import helmet from "helmet";
 import createAuthRouter from "./routes/auth.routes";
 import usersRouter from "./routes/users.routes";
 import roomsRouter from "./routes/rooms.routes";
@@ -7,9 +8,27 @@ import showroomRouter from "./routes/showroom.routes";
 import aiRouter from "./routes/ai.routes";
 import notFound from "./middleware/notFound.middleware";
 import errorHandler from "./middleware/error.middleware";
+import { createApiRateLimit } from "./middleware/rateLimit.middleware";
 
 export default function createApp(): Express {
   const app = express();
+  app.disable("x-powered-by");
+  app.set("trust proxy", 1);
+
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'none'"],
+          frameAncestors: ["'none'"],
+        },
+      },
+      crossOriginResourcePolicy: { policy: "cross-origin" },
+      crossOriginEmbedderPolicy: false,
+      crossOriginOpenerPolicy: false,
+    }),
+  );
+
   const rawOrigins =
     process.env.CLIENT_ORIGIN ??
     process.env.CLIENT_URL ??
@@ -40,6 +59,8 @@ export default function createApp(): Express {
   app.get("/api/health", (_req, res) => {
     res.json({ status: "ok" });
   });
+
+  app.use("/api", createApiRateLimit());
 
   app.use("/api/auth", createAuthRouter());
   app.use("/api/users", usersRouter);

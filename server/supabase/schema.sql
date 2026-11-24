@@ -134,7 +134,7 @@ begin
       thumbnail = excluded.thumbnail,
       remixed_from = excluded.remixed_from,
       updated_at = now()
-    where public.rooms.owner_id is null or public.rooms.owner_id = p_owner_id
+    where public.rooms.owner_id = p_owner_id
     returning *;
   if not found then
     raise exception 'ROOM_FORBIDDEN' using errcode='42501';

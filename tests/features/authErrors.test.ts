@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { classifyAuthError, isAuthCancelled } from '../../src/features/session/authErrors';
 import { createAuthCallbackHandler, oauthCallbackError } from '../../src/features/session/oauthCallback';
+import { AuthApiError } from '../../src/services/api/auth.api';
 
 test('maps Supabase email/password auth errors to Korean guidance', () => {
   const invalid = classifyAuthError({ code: 'invalid_credentials', message: 'Invalid login credentials' });
@@ -92,4 +93,47 @@ test('oauthCallbackError and handler emit granular error codes', async () => {
     await handle(new URL('https://app.example/auth/callback?code=expired_code')),
     '/?error=session_expired',
   );
+});
+
+
+test('maps MFA step-up, verification, and enrollment errors to Korean guidance', () => {
+  const stepUp = classifyAuthError(
+    new AuthApiError('2단계 인증(OTP) 확인 후 다시 시도해 주세요.', {
+      status: 403,
+      code: 'MFA_STEP_UP_REQUIRED',
+    }),
+  );
+  assert.equal(stepUp.code, 'mfa_step_up_required');
+  assert.equal(stepUp.retryable, true);
+
+  const insufficientAal = classifyAuthError({ code: 'insufficient_aal', message: 'AAL2 required to unenroll' });
+  assert.equal(insufficientAal.code, 'mfa_step_up_required');
+
+  const axiosStepUp = classifyAuthError({
+    code: 'ERR_BAD_REQUEST',
+    response: { status: 403, data: { code: 'MFA_STEP_UP_REQUIRED', message: 'Step-up needed' } },
+  });
+  assert.equal(axiosStepUp.code, 'mfa_step_up_required');
+
+  for (const input of [
+    { code: 'invalid_totp', message: 'Invalid TOTP code supplied' },
+    { code: 'mfa_verification_failed', message: 'Verification failed' },
+    { code: 'mfa_challenge_expired', message: 'Challenge expired' },
+    { code: 'mfa_invalid_code', message: '6자리 숫자 인증 코드를 입력해 주세요.' },
+  ]) {
+    const info = classifyAuthError(input);
+    assert.equal(info.code, 'mfa_invalid_code');
+    assert.equal(info.retryable, true);
+  }
+
+  for (const input of [
+    { code: 'mfa_factor_name_conflict', message: 'Friendly name already exists' },
+    { code: 'mfa_factor_not_found', message: 'Factor not found' },
+    { code: 'too_many_enrolled_mfa_factors', message: 'Too many enrolled factors' },
+    { code: 'mfa_enrollment_failed', message: 'Enrollment failed' },
+  ]) {
+    const info = classifyAuthError(input);
+    assert.equal(info.code, 'mfa_enrollment_failed');
+    assert.equal(info.retryable, true);
+  }
 });

@@ -92,6 +92,122 @@
   gap: var(--sp-4);
   padding-top: var(--sp-3);
 }
+.mfaDesc {
+  margin: 0;
+  font-size: var(--fs-sub);
+  line-height: 1.5;
+  color: var(--text-sub);
+}
+.mfaEmail {
+  display: inline-block;
+  margin-top: var(--sp-1);
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  color: var(--text);
+  font-weight: 600;
+}
+.otpField input {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.18em;
+  font-weight: 600;
+}
+.actionRow {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+.mfaSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  border-radius: var(--radius);
+  background: var(--surface-sub);
+  border: 1px solid var(--line);
+}
+.mfaHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+.mfaTitle {
+  font-size: var(--fs-sub);
+  font-weight: 700;
+  color: var(--text);
+}
+.enrollCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.qrWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  padding: var(--sp-3);
+  border-radius: var(--r-sm);
+  background: #ffffff;
+  border: 1px solid var(--line);
+}
+.qrImage {
+  display: block;
+  width: 164px;
+  height: 164px;
+  object-fit: contain;
+}
+.secretBox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+.secretLabel {
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  color: var(--text-sub);
+}
+.secretRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  background: var(--surface-sub);
+  border: 1px solid var(--line);
+}
+.secretCode {
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  word-break: break-all;
+  user-select: all;
+}
+.stepUpBox {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.stepUpDanger {
+  background: var(--danger-soft);
+  border-color: rgba(240, 68, 82, 0.28);
+}
+.deactivateWrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
 .deactivate {
   align-self: flex-start;
   font-size: var(--fs-caption);

@@ -38,6 +38,12 @@ export function serverMessage(error: unknown): string | undefined {
   return typeof m === 'string' && m ? m : undefined;
 }
 
+export function serverCode(error: unknown): string | undefined {
+  const e = error as { response?: { data?: { code?: unknown; error?: { code?: unknown } } } } | null;
+  const c = e?.response?.data?.code ?? e?.response?.data?.error?.code;
+  return typeof c === 'string' && c ? c : undefined;
+}
+
 /** HTTP 오류 → RoomAccessError (401 unauthorized / 403 forbidden / 404 not-found / 그 외 network). status는 보존 */
 export function toAccessError(error: unknown): RoomAccessError {
   if (error instanceof RoomAccessError) return error;

@@ -16,10 +16,19 @@ export function profileResponse(row: ProfileRow): User {
 
 export type AppUser = ReturnType<typeof profileResponse>;
 
+export type AuthAal = "aal1" | "aal2";
+
+export interface AuthContext {
+  token: string;
+  aal: AuthAal | null;
+  hasVerifiedMfa: boolean | null;
+}
+
 declare global {
   namespace Express {
     interface Request {
       auth?: AppUser;
+      authContext?: AuthContext;
     }
   }
 }

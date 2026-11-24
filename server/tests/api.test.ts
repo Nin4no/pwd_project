@@ -332,3 +332,171 @@ test("auth provider outages fail closed with 503", async () => {
   const result = await request(app).get("/api/rooms").set("Authorization", "Bearer token");
   expect(result.status).toBe(503);
 });
+
+test("security headers are applied via helmet and x-powered-by is absent", async () => {
+  jest.mocked(showroom.getShowroomPosts).mockResolvedValue([]);
+  const res = await request(app).get("/api/showroom");
+  expect(res.status).toBe(200);
+  expect(res.headers["x-powered-by"]).toBeUndefined();
+  expect(res.headers["x-content-type-options"]).toBe("nosniff");
+  expect(res.headers["content-security-policy"]).toContain("default-src 'none'");
+  expect(res.headers["content-security-policy"]).toContain("frame-ancestors 'none'");
+  expect(res.headers["cross-origin-resource-policy"]).toBe("cross-origin");
+});
+
+test("unexpected 500 errors are masked while HttpError messages and codes are preserved", async () => {
+  const errLog = jest.spyOn(console, "error").mockImplementation(() => undefined);
+  try {
+    jest.mocked(rooms.getRooms).mockRejectedValueOnce(new Error("sensitive db credentials leak"));
+    const masked = await request(app).get("/api/rooms").set("Authorization", "Bearer valid-token");
+    expect(masked.status).toBe(500);
+    expect(masked.body).toEqual({
+      message: "Internal server error.",
+      error: { message: "Internal server error." },
+    });
+    expect(JSON.stringify(masked.body)).not.toContain("sensitive db");
+    expect(errLog).toHaveBeenCalled();
+
+    jest.mocked(rooms.getRooms).mockRejectedValueOnce(
+      new HttpError(503, "AI service is not configured.", "SERVICE_UNAVAILABLE"),
+    );
+    const explicit = await request(app).get("/api/rooms").set("Authorization", "Bearer valid-token");
+    expect(explicit.status).toBe(503);
+    expect(explicit.body).toEqual({
+      message: "AI service is not configured.",
+      code: "SERVICE_UNAVAILABLE",
+      error: { message: "AI service is not configured.", code: "SERVICE_UNAVAILABLE" },
+    });
+  } finally {
+    errLog.mockRestore();
+  }
+});
+
+test("global /api rate limiter enforces cap while bypassing /health and /api/health", async () => {
+  const prevLimit = process.env.API_RATE_LIMIT_MAX;
+  process.env.API_RATE_LIMIT_MAX = "3";
+  try {
+    const limitedApp = createApp();
+    jest.mocked(showroom.getShowroomPosts).mockResolvedValue([]);
+
+    for (let i = 0; i < 5; i++) {
+      const h1 = await request(limitedApp).get("/health");
+      const h2 = await request(limitedApp).get("/api/health");
+      expect(h1.status).toBe(200);
+      expect(h2.status).toBe(200);
+    }
+
+    for (let i = 0; i < 3; i++) {
+      const ok = await request(limitedApp).get("/api/showroom");
+      expect(ok.status).toBe(200);
+    }
+
+    const blocked = await request(limitedApp).get("/api/showroom");
+    expect(blocked.status).toBe(429);
+    expect(blocked.headers["retry-after"]).toBeDefined();
+    expect(blocked.body.message).toBeTruthy();
+    expect(blocked.body.error.message).toBe(blocked.body.message);
+  } finally {
+    if (prevLimit === undefined) delete process.env.API_RATE_LIMIT_MAX;
+    else process.env.API_RATE_LIMIT_MAX = prevLimit;
+  }
+});
+
+function makeFakeJwt(payload: Record<string, unknown>): string {
+  const header = Buffer.from(JSON.stringify({ alg: "HS256", typ: "JWT" })).toString("base64url");
+  const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  return `${header}.${body}.sig`;
+}
+
+describe("DELETE /api/users/account MFA step-up", () => {
+  test("non-MFA user succeeds without step-up", async () => {
+    jest.mocked(users.deactivateAccount).mockResolvedValueOnce();
+    client.auth.getUser.mockResolvedValueOnce({
+      data: { user: { id: profile.id, factors: [] } },
+      error: null,
+    });
+    const res = await request(app)
+      .delete("/api/users/account")
+      .set("Authorization", `Bearer ${makeFakeJwt({ sub: profile.id, aal: "aal1" })}`);
+    expect(res.status).toBe(200);
+    expect(users.deactivateAccount).toHaveBeenCalledWith(profile.id);
+  });
+
+  test("MFA user at aal1 is rejected with 403 MFA_STEP_UP_REQUIRED", async () => {
+    client.auth.getUser.mockResolvedValueOnce({
+      data: {
+        user: {
+          id: profile.id,
+          factors: [{ id: "factor-1", status: "verified", factor_type: "totp" }],
+        },
+      },
+      error: null,
+    });
+    const res = await request(app)
+      .delete("/api/users/account")
+      .set("Authorization", `Bearer ${makeFakeJwt({ sub: profile.id, aal: "aal1" })}`);
+    expect(res.status).toBe(403);
+    expect(res.body.code).toBe("MFA_STEP_UP_REQUIRED");
+    expect(res.body.error.code).toBe("MFA_STEP_UP_REQUIRED");
+    expect(users.deactivateAccount).not.toHaveBeenCalled();
+  });
+
+  test("MFA user at aal2 succeeds", async () => {
+    jest.mocked(users.deactivateAccount).mockResolvedValueOnce();
+    client.auth.getUser.mockResolvedValueOnce({
+      data: {
+        user: {
+          id: profile.id,
+          factors: [{ id: "factor-1", status: "verified", factor_type: "totp" }],
+        },
+      },
+      error: null,
+    });
+    const res = await request(app)
+      .delete("/api/users/account")
+      .set("Authorization", `Bearer ${makeFakeJwt({ sub: profile.id, aal: "aal2" })}`);
+    expect(res.status).toBe(200);
+    expect(users.deactivateAccount).toHaveBeenCalledWith(profile.id);
+  });
+
+  test("falls back to admin.mfa.listFactors when user.factors is omitted and fails closed on error", async () => {
+    const listFactors = jest.fn().mockResolvedValueOnce({
+      data: { factors: [{ id: "f-admin", status: "verified" }] },
+      error: null,
+    });
+    const adminClient = {
+      ...client,
+      auth: {
+        ...client.auth,
+        admin: { mfa: { listFactors } },
+      },
+    };
+    jest.mocked(getSupabase).mockReturnValue(adminClient as unknown as ReturnType<typeof getSupabase>);
+    client.auth.getUser.mockResolvedValueOnce({
+      data: { user: { id: profile.id } },
+      error: null,
+    });
+
+    const blocked = await request(app)
+      .delete("/api/users/account")
+      .set("Authorization", `Bearer ${makeFakeJwt({ sub: profile.id, aal: "aal1" })}`);
+    expect(blocked.status).toBe(403);
+    expect(blocked.body.code).toBe("MFA_STEP_UP_REQUIRED");
+    expect(listFactors).toHaveBeenCalledWith({ userId: profile.id });
+
+    const errLog = jest.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      listFactors.mockResolvedValueOnce({ data: null, error: { message: "admin outage" } });
+      client.auth.getUser.mockResolvedValueOnce({
+        data: { user: { id: profile.id } },
+        error: null,
+      });
+      const outage = await request(app)
+        .delete("/api/users/account")
+        .set("Authorization", `Bearer ${makeFakeJwt({ sub: profile.id, aal: "aal1" })}`);
+      expect(outage.status).toBe(503);
+    } finally {
+      errLog.mockRestore();
+    }
+  });
+});

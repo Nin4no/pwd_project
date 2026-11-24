@@ -21,13 +21,16 @@
     "eval:furniture": "tsx scripts/eval-furniture.ts"
   },
   "dependencies": {
-    "cors": "2.8.5",
-    "express": "5.1.0",
     "@supabase/supabase-js": "2.118.0",
-    "dotenv": "17.2.2"
+    "cors": "2.8.5",
+    "dotenv": "17.2.2",
+    "express": "5.1.0",
+    "helmet": "^8.3.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.14",
     "@types/cors": "2.8.19",
+    "@types/emscripten": "1.41.6",
     "@types/express": "5.0.6",
     "@types/jest": "29.5.14",
     "@types/node": "22.20.5",
@@ -36,9 +39,7 @@
     "supertest": "7.1.4",
     "ts-jest": "29.4.15",
     "tsx": "4.23.15",
-    "typescript": "5.9.3",
-    "@electric-sql/pglite": "0.5.14",
-    "@types/emscripten": "1.41.6"
+    "typescript": "5.9.3"
   },
   "description": "Design Your Room API with Supabase Auth, rooms and showroom"
 }

@@ -4,6 +4,10 @@ import type { Room, ShowroomPost } from "../types/domain.types";
 import { rowToRoom } from "./rooms.service";
 import HttpError from "../utils/httpError";
 import { objectBody, textField } from "../utils/input";
+import {
+  MAX_SHOWROOM_LIMIT,
+  validateShowroomRoomSnapshot,
+} from "../utils/roomValidation";
 
 export function rowToShowroomPost(row: ShowroomPostRow): ShowroomPost {
   const parseJson = (val: unknown) => {
@@ -51,7 +55,7 @@ export async function getShowroomPosts(limit?: number, userId?: string): Promise
     .order("shared_at", { ascending: false });
 
   if (limit && Number.isInteger(limit) && limit > 0) {
-    query = query.limit(limit);
+    query = query.limit(Math.min(limit, MAX_SHOWROOM_LIMIT));
   }
 
   const { data, error } = await query;
@@ -87,9 +91,7 @@ export async function createShowroomPost(
     300,
   );
 
-  if (!input.room || typeof input.room !== "object") {
-    throw new HttpError(400, "room 데이터가 필요합니다.");
-  }
+  const validatedRoom = validateShowroomRoomSnapshot(input.room);
 
   const { data, error } = await getSupabase()
     .from("showroom_posts")
@@ -98,7 +100,7 @@ export async function createShowroomPost(
       author_id: userId,
       author,
       description,
-      room_snapshot: input.room as any,
+      room_snapshot: validatedRoom as any,
       likes: 0,
       remix_count: 0,
       builtin: false,

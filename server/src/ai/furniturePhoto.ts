@@ -1,4 +1,5 @@
 import HttpError from "../utils/httpError";
+import { geminiFetch } from "./geminiFetch";
 import {
   blueprintSchema,
   normalizeBlueprint,
@@ -185,12 +186,16 @@ export async function inferFurniturePhoto(
     ? `Extract the target furniture blueprint from this photo (${userHints}).`
     : "Extract the target furniture blueprint from this photo.";
 
+  const timeoutMs = Number(process.env.GEMINI_STREAM_TIMEOUT_MS) || 120_000;
   const send = () =>
-    fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${key}`,
+    geminiFetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`,
       {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: {
+          "content-type": "application/json",
+          "x-goog-api-key": key,
+        },
         body: JSON.stringify({
           systemInstruction: { parts: [{ text: systemPrompt }] },
           contents: [
@@ -207,6 +212,7 @@ export async function inferFurniturePhoto(
           },
         }),
       },
+      timeoutMs,
     );
 
   let response = await send();
@@ -218,7 +224,11 @@ export async function inferFurniturePhoto(
 
   if (!response.ok) {
     const detail = (await response.text?.().catch(() => "")) ?? "";
-    throw new Error(`Gemini returned ${response.status}: ${detail.slice(0, 300)}`);
+    console.error("[AI] Gemini upstream error", {
+      status: response.status,
+      detail: detail.slice(0, 300),
+    });
+    throw new HttpError(502, "AI service request failed.");
   }
 
   const parsed = await parseGeminiResponse(response);

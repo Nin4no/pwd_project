@@ -3,6 +3,7 @@ import type { RoomRow } from "../types/database.types";
 import type { Room } from "../types/domain.types";
 import HttpError from "../utils/httpError";
 import { objectBody, textField } from "../utils/input";
+import { validateRoomFields } from "../utils/roomValidation";
 
 export function rowToRoom(row: RoomRow): Room {
   const parseJson = (val: unknown) => {
@@ -67,19 +68,14 @@ export async function upsertRoom(
 
   const title =
     textField(input.title ?? "무제 방", "title", false, 100) || "무제 방";
-  const walls = Array.isArray(input.walls) ? input.walls : [];
-  const furniture = Array.isArray(input.furniture) ? input.furniture : [];
-  const customSpecs = Array.isArray(input.customSpecs) ? input.customSpecs : [];
+  const { walls, furniture, customSpecs, thumbnail, remixedFrom } =
+    validateRoomFields(input);
   const wallHeight =
     typeof input.wallHeight === "number" &&
     input.wallHeight >= 1.5 &&
     input.wallHeight <= 6.0
       ? input.wallHeight
       : 2.4;
-  const thumbnail =
-    typeof input.thumbnail === "string" ? input.thumbnail : null;
-  const remixedFrom =
-    typeof input.remixedFrom === "string" ? input.remixedFrom : null;
 
   const { data, error } = await getSupabase().rpc("upsert_room", {
     p_id: roomId,

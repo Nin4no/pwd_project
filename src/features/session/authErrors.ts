@@ -10,6 +10,9 @@ export type AuthErrorCode =
   | 'oauth_provider_error'
   | 'code_exchange_failed'
   | 'session_expired'
+  | 'mfa_invalid_code'
+  | 'mfa_step_up_required'
+  | 'mfa_enrollment_failed'
   | 'unknown_error';
 
 export interface AuthErrorInfo {
@@ -86,6 +89,24 @@ const AUTH_ERROR_TABLE: Record<AuthErrorCode, AuthErrorInfo> = {
     message: '인증 시간이 지났습니다. 다시 로그인해 주세요.',
     retryable: true,
   },
+  mfa_invalid_code: {
+    code: 'mfa_invalid_code',
+    title: '인증 코드를 확인해 주세요',
+    message: '인증 앱의 6자리 숫자가 올바르지 않거나 만료되었습니다. 다시 입력해 주세요.',
+    retryable: true,
+  },
+  mfa_step_up_required: {
+    code: 'mfa_step_up_required',
+    title: '2단계 인증 확인이 필요합니다',
+    message: '보안을 위해 인증 앱의 6자리 코드를 먼저 확인해 주세요.',
+    retryable: true,
+  },
+  mfa_enrollment_failed: {
+    code: 'mfa_enrollment_failed',
+    title: '2단계 인증 설정에 실패했습니다',
+    message: '2단계 인증을 등록하거나 변경하지 못했습니다. 잠시 후 다시 시도해 주세요.',
+    retryable: true,
+  },
   unknown_error: {
     code: 'unknown_error',
     title: '로그인에 실패했습니다',
@@ -118,20 +139,39 @@ function extractErrorFields(error: unknown): ExtractedErrorFields {
   }
 
   const record = error as Record<string, unknown>;
+  const response =
+    record.response && typeof record.response === 'object'
+      ? (record.response as Record<string, unknown>)
+      : undefined;
+  const responseData =
+    response?.data && typeof response.data === 'object'
+      ? (response.data as Record<string, unknown>)
+      : undefined;
+  const responseError =
+    responseData?.error && typeof responseData.error === 'object'
+      ? (responseData.error as Record<string, unknown>)
+      : undefined;
+
   const code =
+    asString(responseData?.code) ||
+    asString(responseError?.code) ||
     asString(record.code) ||
     asString(record.error_code) ||
     asString(record.error);
   const message =
+    asString(responseData?.message) ||
+    asString(responseError?.message) ||
     asString(record.message) ||
     asString(record.error_description) ||
     asString(record.msg);
   const status =
-    typeof record.status === 'number'
-      ? record.status
-      : typeof record.statusCode === 'number'
-        ? record.statusCode
-        : undefined;
+    typeof response?.status === 'number'
+      ? response.status
+      : typeof record.status === 'number'
+        ? record.status
+        : typeof record.statusCode === 'number'
+          ? record.statusCode
+          : undefined;
 
   return { code, message, status };
 }
@@ -221,6 +261,50 @@ export function classifyAuthError(error: unknown): AuthErrorInfo {
     combined.includes('only request this after')
   ) {
     return AUTH_ERROR_TABLE.over_request_rate_limit;
+  }
+
+  if (
+    codeLower === 'mfa_step_up_required' ||
+    codeLower === 'insufficient_aal' ||
+    combined.includes('mfa_step_up_required') ||
+    combined.includes('insufficient_aal') ||
+    combined.includes('aal2 required') ||
+    (combined.includes('aal2') && combined.includes('required'))
+  ) {
+    return AUTH_ERROR_TABLE.mfa_step_up_required;
+  }
+
+  if (
+    codeLower === 'mfa_invalid_code' ||
+    codeLower === 'invalid_totp' ||
+    codeLower === 'mfa_verification_failed' ||
+    codeLower === 'mfa_challenge_expired' ||
+    combined.includes('mfa_invalid_code') ||
+    combined.includes('invalid_totp') ||
+    combined.includes('invalid totp') ||
+    combined.includes('mfa_verification_failed') ||
+    combined.includes('mfa_challenge_expired') ||
+    combined.includes('invalid mfa code') ||
+    message.includes('6자리 숫자')
+  ) {
+    return AUTH_ERROR_TABLE.mfa_invalid_code;
+  }
+
+  if (
+    codeLower === 'mfa_enrollment_failed' ||
+    codeLower === 'mfa_factor_name_conflict' ||
+    codeLower === 'mfa_factor_not_found' ||
+    codeLower === 'mfa_verified_factor_exists' ||
+    codeLower === 'too_many_enrolled_mfa_factors' ||
+    codeLower === 'mfa_totp_enroll_disabled' ||
+    codeLower === 'mfa_totp_verify_disabled' ||
+    combined.includes('mfa_enrollment_failed') ||
+    combined.includes('mfa_factor_name_conflict') ||
+    combined.includes('mfa_factor_not_found') ||
+    combined.includes('too_many_enrolled_mfa_factors') ||
+    (combined.includes('friendly name') && combined.includes('already exists'))
+  ) {
+    return AUTH_ERROR_TABLE.mfa_enrollment_failed;
   }
 
   if (

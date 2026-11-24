@@ -131,6 +131,7 @@ describe("POST /api/ai/furniture-photo", () => {
     mockUser("photo-user-sse");
     process.env.GEMINI_API_KEY = "test-key";
     let capturedUrl = "";
+    let capturedHeaders: Record<string, string> = {};
     let capturedBody: any = null;
 
     const modelPayload = {
@@ -171,6 +172,7 @@ describe("POST /api/ai/furniture-photo", () => {
 
     (global as any).fetch = async (url: string, init?: RequestInit) => {
       capturedUrl = url;
+      capturedHeaders = (init?.headers ?? {}) as Record<string, string>;
       capturedBody = JSON.parse(String(init?.body || "{}"));
       return {
         ok: true,
@@ -191,6 +193,8 @@ describe("POST /api/ai/furniture-photo", () => {
 
     expect(res.status).toBe(200);
     expect(capturedUrl).toContain(":streamGenerateContent?alt=sse");
+    expect(capturedUrl).not.toContain("key=");
+    expect(capturedHeaders["x-goog-api-key"]).toBe("test-key");
     expect(capturedBody.generationConfig?.responseSchema?.required).toContain("confidence");
     expect(capturedBody.systemInstruction?.parts?.[0]?.text).toContain("150 cm (1.5 m)");
     expect(capturedBody.systemInstruction?.parts?.[0]?.text).toContain("내 책상");
@@ -257,5 +261,39 @@ describe("POST /api/ai/furniture-photo", () => {
     expect(res.body.data.confidence).toBe(1);
     expect(res.body.data.estimatedSizeM).toEqual([2.1, 0.9, 0.85]);
     expect(res.body.data.blueprint.root.params).toEqual({ style: "sofa", seats: 3 });
+  });
+
+  test("masks upstream Gemini 502 details and returns 504 on timeout", async () => {
+    mockUser("photo-user-errors");
+    process.env.GEMINI_API_KEY = "test-key";
+    const errLog = jest.spyOn(console, "error").mockImplementation(() => undefined);
+    try {
+      (global as any).fetch = async () => ({
+        ok: false,
+        status: 400,
+        text: async () => "UPSTREAM_PHOTO_SECRET_BODY",
+      });
+      const r502 = await request(app)
+        .post("/api/ai/furniture-photo")
+        .set("authorization", "Bearer ok")
+        .send({ imageDataUrl: samplePng });
+      expect(r502.status).toBe(502);
+      expect(r502.body.message).toBe("AI service request failed.");
+      expect(JSON.stringify(r502.body)).not.toContain("UPSTREAM_PHOTO_SECRET_BODY");
+
+      (global as any).fetch = async () => {
+        const abortErr = new Error("aborted");
+        abortErr.name = "AbortError";
+        throw abortErr;
+      };
+      const r504 = await request(app)
+        .post("/api/ai/furniture-photo")
+        .set("authorization", "Bearer ok")
+        .send({ imageDataUrl: samplePng });
+      expect(r504.status).toBe(504);
+      expect(r504.body.message).toBe("AI service timed out.");
+    } finally {
+      errLog.mockRestore();
+    }
   });
 });

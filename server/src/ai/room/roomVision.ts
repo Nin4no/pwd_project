@@ -1,4 +1,6 @@
 import type { RoomCalibration, RoomPrediction } from "../../types/room.types";
+import HttpError from "../../utils/httpError";
+import { geminiFetch } from "../geminiFetch";
 import { normalizeRoomPrediction } from "./calibrate";
 
 export const roomResponseSchema = {
@@ -29,23 +31,59 @@ function validPrediction(v: any): v is RoomPrediction & { confidence?: number } 
 
 export async function inferRoom(imageDataUrl: string, calibration?: RoomCalibration): Promise<{ prediction: RoomPrediction; confidence: number }> {
   const key = process.env.GEMINI_API_KEY;
-  if (!key) throw new Error("AI service is not configured.");
+  if (!key) throw new HttpError(503, "AI service is not configured.");
   const model = process.env.GEMINI_MODEL || "gemini-3.5-flash";
+  const timeoutMs = Number(process.env.GEMINI_STREAM_TIMEOUT_MS) || 120_000;
   // 스트리밍(SSE): 응답 헤더가 즉시 도착해 Node fetch의 5분 헤더 타임아웃을 피함 (gemini-3.x는 사고 시간이 김)
-  const send = () => fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse&key=${key}`, {
-    method: "POST", headers: { "content-type": "application/json" },
-    body: JSON.stringify({ systemInstruction: { parts: [{ text: buildRoomPrompt(calibration) }] }, contents: [{ role: "user", parts: [{ inlineData: { mimeType: imageDataUrl.slice(5, imageDataUrl.indexOf(";")), data: imageDataUrl.slice(imageDataUrl.indexOf(",") + 1) } }, { text: "Analyze the room image." }] }], generationConfig: { responseMimeType: "application/json", responseSchema: roomResponseSchema, temperature: 0.2, thinkingConfig: { thinkingLevel: process.env.GEMINI_THINKING_LEVEL || "low" } } }),
-  });
+  const send = () =>
+    geminiFetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:streamGenerateContent?alt=sse`,
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-goog-api-key": key,
+        },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: buildRoomPrompt(calibration) }] },
+          contents: [
+            {
+              role: "user",
+              parts: [
+                {
+                  inlineData: {
+                    mimeType: imageDataUrl.slice(5, imageDataUrl.indexOf(";")),
+                    data: imageDataUrl.slice(imageDataUrl.indexOf(",") + 1),
+                  },
+                },
+                { text: "Analyze the room image." },
+              ],
+            },
+          ],
+          generationConfig: {
+            responseMimeType: "application/json",
+            responseSchema: roomResponseSchema,
+            temperature: 0.2,
+            thinkingConfig: { thinkingLevel: process.env.GEMINI_THINKING_LEVEL || "low" },
+          },
+        }),
+      },
+      timeoutMs,
+    );
   // 일시적 오류(429 요청 한도, 500/503 서버 혼잡)는 지수 백오프로 최대 4회 재시도
   let response = await send();
   for (let attempt = 1; attempt <= 4 && [429, 500, 503].includes(response.status); attempt++) {
-    await response.text().catch(() => "");
+    await response.text?.().catch(() => "");
     await new Promise((resolve) => setTimeout(resolve, 5000 * 2 ** (attempt - 1)));
     response = await send();
   }
   if (!response.ok) {
-    const detail = await response.text().catch(() => "");
-    throw new Error(`Gemini returned ${response.status}: ${detail.slice(0, 300)}`);
+    const detail = (await response.text?.().catch(() => "")) ?? "";
+    console.error("[AI] Gemini upstream error", {
+      status: response.status,
+      detail: detail.slice(0, 300),
+    });
+    throw new HttpError(502, "AI service request failed.");
   }
   const text = await readSseText(response);
   const parsed = JSON.parse(text || "{}");

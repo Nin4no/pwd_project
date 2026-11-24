@@ -113,6 +113,70 @@ describe("rooms.service", () => {
     });
     await expect(rooms.deleteRoom(userId, "room-101")).rejects.toThrow("소유자만 삭제할 수 있습니다.");
   });
+
+  test("upsertRoom validates walls/furniture/customSpecs bounds, thumbnail allowlist, and remixedFrom", async () => {
+    await expect(
+      rooms.upsertRoom(userId, "room-101", { walls: Array.from({ length: 201 }, () => ({})) }),
+    ).rejects.toMatchObject({ statusCode: 400 });
+
+    await expect(
+      rooms.upsertRoom(userId, "room-101", { furniture: Array.from({ length: 301 }, () => ({})) }),
+    ).rejects.toMatchObject({ statusCode: 400 });
+
+    await expect(
+      rooms.upsertRoom(userId, "room-101", { customSpecs: Array.from({ length: 101 }, () => ({})) }),
+    ).rejects.toMatchObject({ statusCode: 400 });
+
+    await expect(
+      rooms.upsertRoom(userId, "room-101", { walls: ["not-an-object"] }),
+    ).rejects.toMatchObject({ statusCode: 400 });
+
+    await expect(
+      rooms.upsertRoom(userId, "room-101", { furniture: [null] }),
+    ).rejects.toMatchObject({ statusCode: 400 });
+
+    for (const badThumb of [
+      "javascript:alert(1)",
+      "data:text/html;base64,PHNjcmlwdD4=",
+      "data:image/svg+xml;base64,AA==",
+      "http://insecure.example.com/thumb.png",
+    ]) {
+      await expect(
+        rooms.upsertRoom(userId, "room-101", { thumbnail: badThumb }),
+      ).rejects.toMatchObject({ statusCode: 400 });
+    }
+
+    await expect(
+      rooms.upsertRoom(userId, "room-101", { remixedFrom: "x".repeat(129) }),
+    ).rejects.toMatchObject({ statusCode: 400 });
+
+    client.rpc.mockResolvedValueOnce({ data: [roomRow], error: null });
+    await rooms.upsertRoom(userId, "room-101", {
+      walls: [{ id: "w1" }],
+      furniture: [{ id: "f1" }],
+      customSpecs: [{ id: "c1" }],
+      thumbnail: "data:image/webp;base64,AA==",
+      remixedFrom: "post-1",
+    });
+    expect(client.rpc).toHaveBeenCalledWith(
+      "upsert_room",
+      expect.objectContaining({
+        p_thumbnail: "data:image/webp;base64,AA==",
+        p_remixed_from: "post-1",
+      }),
+    );
+
+    client.rpc.mockResolvedValueOnce({ data: [roomRow], error: null });
+    await rooms.upsertRoom(userId, "room-101", {
+      thumbnail: "https://cdn.example.com/rooms/thumb.png",
+    });
+    expect(client.rpc).toHaveBeenCalledWith(
+      "upsert_room",
+      expect.objectContaining({
+        p_thumbnail: "https://cdn.example.com/rooms/thumb.png",
+      }),
+    );
+  });
 });
 
 describe("showroom.service", () => {
@@ -206,6 +270,33 @@ describe("showroom.service", () => {
     const posts = await showroom.getShowroomPosts(undefined, userId);
     expect(posts[0].likedByMe).toBe(true);
     expect(query.in).toHaveBeenCalledWith("post_id", [postRow.id]);
+  });
+
+  test("createShowroomPost rejects array/invalid room snapshots and getShowroomPosts caps limit at 100", async () => {
+    await expect(
+      showroom.createShowroomPost(userId, "테스터", {
+        id: "post-bad-1",
+        room: [],
+      }),
+    ).rejects.toMatchObject({ statusCode: 400 });
+
+    await expect(
+      showroom.createShowroomPost(userId, "테스터", {
+        id: "post-bad-2",
+        room: { id: "r1", thumbnail: "data:image/svg+xml;base64,AA==" },
+      }),
+    ).rejects.toMatchObject({ statusCode: 400 });
+
+    await expect(
+      showroom.createShowroomPost(userId, "테스터", {
+        id: "post-bad-3",
+        room: { id: "r1", walls: ["bad"] },
+      }),
+    ).rejects.toMatchObject({ statusCode: 400 });
+
+    query.limit.mockResolvedValueOnce({ data: [], error: null });
+    await showroom.getShowroomPosts(500);
+    expect(query.limit).toHaveBeenCalledWith(100);
   });
 });
 

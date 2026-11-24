@@ -26,4 +26,15 @@ export const useSessionStore: BoundSessionStore = Object.assign(
   sessionStore,
 );
 
-export type { AuthNotice, SessionStore, SessionState, SessionActions } from './createSessionStore';
+export type {
+  AuthNotice,
+  MfaAal,
+  MfaChallengeState,
+  MfaEnrollmentDraft,
+  MfaFactorSummary,
+  MfaState,
+  SessionActions,
+  SessionState,
+  SessionStore,
+  SupabaseMfaLike,
+} from './createSessionStore';

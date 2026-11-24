@@ -1,5 +1,25 @@
 import type { ProviderState, User } from '../../domain/types';
-import { unwrap, type HttpClients } from './client';
+import { serverCode, serverMessage, statusOf, unwrap, type HttpClients } from './client';
+
+export class AuthApiError extends Error {
+  readonly status?: number;
+  readonly code?: string;
+
+  constructor(message: string, opts?: { status?: number; code?: string }) {
+    super(message);
+    this.name = 'AuthApiError';
+    this.status = opts?.status;
+    this.code = opts?.code;
+  }
+}
+
+function toAuthApiError(error: unknown, fallback = '요청에 실패했습니다.'): AuthApiError {
+  if (error instanceof AuthApiError) return error;
+  return new AuthApiError(serverMessage(error) ?? fallback, {
+    status: statusOf(error),
+    code: serverCode(error),
+  });
+}
 
 /** 서버 `/api/auth/*`·`/api/users/*` — 구 `backend.ts` AuthService의 HTTP 호출 부분 */
 export interface AuthApi {
@@ -50,18 +70,26 @@ export function createAuthApi({ authApi, publicApi }: HttpClients): AuthApi {
       return data;
     },
     async updateProfile(displayName, avatar) {
-      const raw = unwrap<Record<string, any> | undefined>(
-        await authApi.put('/api/users/profile', { display_name: displayName, avatar }),
-        'user',
-      );
-      const out: Partial<User> = {};
-      const name = raw?.displayName ?? raw?.display_name;
-      if (typeof name === 'string') out.displayName = name;
-      if (raw?.avatar !== undefined) out.avatar = raw.avatar;
-      return out;
+      try {
+        const raw = unwrap<Record<string, any> | undefined>(
+          await authApi.put('/api/users/profile', { display_name: displayName, avatar }),
+          'user',
+        );
+        const out: Partial<User> = {};
+        const name = raw?.displayName ?? raw?.display_name;
+        if (typeof name === 'string') out.displayName = name;
+        if (raw?.avatar !== undefined) out.avatar = raw.avatar;
+        return out;
+      } catch (e) {
+        throw toAuthApiError(e);
+      }
     },
     async deactivate() {
-      await authApi.delete('/api/users/account');
+      try {
+        await authApi.delete('/api/users/account');
+      } catch (e) {
+        throw toAuthApiError(e);
+      }
     },
   };
 }

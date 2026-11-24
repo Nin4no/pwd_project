@@ -187,6 +187,26 @@ test("room upsert atomically preserves ownership and rejects a foreign owner", a
   assert.equal(saved.rows[0].title, "Updated");
 });
 
+test("room upsert rejects claiming a room whose owner_id is null", async () => {
+  await db.exec("set role service_role");
+  await db.query(
+    "insert into public.rooms(id, owner_id, title) values ('orphan-room', null, 'Orphan')",
+  );
+  await assert.rejects(
+    db.query(
+      "select * from public.upsert_room('orphan-room',$1,'Hijack','[]','[]','[]',2.4,null,null)",
+      [user2Id],
+    ),
+    /ROOM_FORBIDDEN/,
+  );
+  const row = await db.query<{ owner_id: string | null; title: string }>(
+    "select owner_id, title from public.rooms where id='orphan-room'",
+  );
+  await db.exec("reset role");
+  assert.equal(row.rows[0].owner_id, null);
+  assert.equal(row.rows[0].title, "Orphan");
+});
+
 test("쇼룸 좋아요 토글 함수(toggle_showroom_like)가 좋아요 수와 상태를 원자적으로 변경한다", async () => {
   const initial = await db.query<{ likes: number }>(
     "select likes from public.showroom_posts where id='post-sample-1'",
