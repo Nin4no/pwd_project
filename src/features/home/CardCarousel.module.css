@@ -28,9 +28,15 @@
 }
 
 /* 데스크톱 (> 1024px): 3장 정밀 노출 */
-.track > * {
+.slide {
+  display: flex;
   scroll-snap-align: start;
   flex: 0 0 calc((100% - 2 * var(--carousel-gap)) / 3);
+  min-width: 0;
+}
+
+.slide > * {
+  flex: 1 1 auto;
   min-width: 0;
 }
 
@@ -96,7 +102,7 @@
 
 /* 태블릿 / 미디엄 (<= 1024px): 2장 정밀 노출 */
 @media (max-width: 1024px) {
-  .track > * {
+  .slide {
     flex: 0 0 calc((100% - var(--carousel-gap)) / 2);
   }
 }
@@ -107,7 +113,7 @@
     --carousel-gap: var(--sp-4);
   }
 
-  .track > * {
+  .slide {
     flex: 0 0 86%;
   }
 

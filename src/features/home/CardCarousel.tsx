@@ -1,12 +1,26 @@
 import {
   Children,
+  isValidElement,
   useCallback,
   useEffect,
+  useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type FocusEvent,
   type ReactNode,
 } from 'react';
+import {
+  LOOP_TOLERANCE,
+  MAX_VISIBLE_SLOTS,
+  buildLoopSlots,
+  computeCloneCount,
+  computeSilentWrap,
+  computeStepPlan,
+  getLoopBounds,
+  hasRealOverflow,
+  type LoopTrackGeometry,
+} from './cardCarouselLoop';
 import s from './CardCarousel.module.css';
 
 export interface CardCarouselProps {
@@ -17,9 +31,13 @@ export interface CardCarouselProps {
   children: ReactNode;
 }
 
-const TOLERANCE = 4;
 const AUTO_SLIDE_INTERVAL_MS = 4200;
 const POINTER_COOLDOWN_MS = 2400;
+const SCROLL_IDLE_SETTLE_MS = 160;
+const PROGRAMMATIC_SETTLE_FALLBACK_MS = 650;
+
+const CLONE_FOCUSABLE_SELECTOR =
+  'a[href], button, input, select, textarea, summary, [tabindex]:not([tabindex="-1"])';
 
 function getPrefersReducedMotion(): boolean {
   return (
@@ -29,49 +47,67 @@ function getPrefersReducedMotion(): boolean {
   );
 }
 
-function measureTrack(el: HTMLDivElement): { hasOverflow: boolean; stepTargets: number[] } {
-  const { clientWidth, scrollWidth } = el;
-  const maxScroll = Math.max(0, scrollWidth - clientWidth);
-  const hasOverflow = maxScroll > TOLERANCE;
-  const children = Array.from(el.children) as HTMLElement[];
+/** 복제 슬롯 내부 포커스 가능 요소를 Tab 순서에서 제외하되(tabindex=-1) 클릭 상호작용은 유지한다 */
+function disableCloneTabStops(trackEl: HTMLDivElement): void {
+  const cloneWrappers = trackEl.querySelectorAll<HTMLElement>('[data-carousel-clone="true"]');
+  for (const wrapper of cloneWrappers) {
+    const focusables = wrapper.querySelectorAll<HTMLElement>(CLONE_FOCUSABLE_SELECTOR);
+    for (const node of focusables) {
+      node.setAttribute('tabindex', '-1');
+    }
+  }
+}
 
-  if (!hasOverflow || children.length <= 1 || clientWidth <= 0) {
+/** 복제본을 제외한 실제 슬롯 구간만 측정해 리사이즈 시 오버플로우 래칭을 방지한다 */
+function measureTrackGeometry(
+  el: HTMLDivElement,
+  itemCount: number,
+  cloneCount: number,
+): { hasOverflow: boolean; geometry: LoopTrackGeometry } {
+  const { clientWidth, scrollWidth } = el;
+  const children = Array.from(el.children) as HTMLElement[];
+  const expectedSlots = itemCount + cloneCount * 2;
+  const maxScroll = Math.max(0, scrollWidth - clientWidth);
+
+  if (itemCount <= 1 || clientWidth <= 0 || children.length < itemCount) {
     return {
       hasOverflow: false,
-      stepTargets: [0],
+      geometry: {
+        itemCount,
+        cloneCount: 0,
+        slotOffsets: [0],
+        maxScroll: 0,
+      },
     };
   }
 
   const firstOffset = children[0].offsetLeft;
-  const stepTargets: number[] = [];
+  const slotOffsets = children.map((child) => Math.max(0, child.offsetLeft - firstOffset));
 
-  for (let i = 0; i < children.length; i++) {
-    const rawTarget = Math.max(0, children[i].offsetLeft - firstOffset);
-    const clampedTarget = Math.min(maxScroll, rawTarget);
-    if (
-      stepTargets.length === 0 ||
-      clampedTarget - stepTargets[stepTargets.length - 1] > TOLERANCE
-    ) {
-      stepTargets.push(clampedTarget);
-    }
-  }
+  const hasMountedClones = cloneCount > 0 && children.length >= expectedSlots;
+  const realStartIdx = hasMountedClones ? cloneCount : 0;
+  const realEndIdx = Math.min(children.length - 1, realStartIdx + itemCount - 1);
+  const firstReal = children[realStartIdx];
+  const lastReal = children[realEndIdx];
+  const realContentWidth =
+    firstReal && lastReal
+      ? lastReal.offsetLeft + lastReal.offsetWidth - firstReal.offsetLeft
+      : 0;
 
-  if (stepTargets.length === 0) {
-    stepTargets.push(0);
-  }
-  if (maxScroll - stepTargets[stepTargets.length - 1] > TOLERANCE) {
-    stepTargets.push(maxScroll);
-  } else {
-    stepTargets[stepTargets.length - 1] = maxScroll;
-  }
+  const hasOverflow = hasRealOverflow(itemCount, realContentWidth, clientWidth, LOOP_TOLERANCE);
 
   return {
     hasOverflow,
-    stepTargets,
+    geometry: {
+      itemCount,
+      cloneCount: hasMountedClones ? cloneCount : 0,
+      slotOffsets,
+      maxScroll,
+    },
   };
 }
 
-/** 홈 섹션 공용 카드 캐러셀 (최근 작업한 방 · 인기 쇼룸) */
+/** 홈 섹션 공용 카드 캐러셀 (최근 작업한 방 · 인기 쇼룸) — 무이음 무한 우측 루프 */
 export default function CardCarousel({ label, itemCount, children }: CardCarouselProps) {
   const trackRef = useRef<HTMLDivElement | null>(null);
   const [hasOverflow, setHasOverflow] = useState(false);
@@ -83,55 +119,217 @@ export default function CardCarousel({ label, itemCount, children }: CardCarouse
     () => typeof document !== 'undefined' && document.visibilityState === 'hidden',
   );
   const [manualTick, setManualTick] = useState(0);
+
   const pointerCooldownTimerRef = useRef<number | null>(null);
+  const scrollIdleTimerRef = useRef<number | null>(null);
+  const programmaticFallbackTimerRef = useRef<number | null>(null);
+  const snapRestoreRafRef = useRef<number | null>(null);
+  const snapRestoreRaf2Ref = useRef<number | null>(null);
+  const isSnappingRef = useRef(false);
+  const isPointerDownRef = useRef(false);
+  const pendingTargetRef = useRef<number | null>(null);
+  const lastTrackWidthRef = useRef(0);
 
-  const resolvedCount = itemCount ?? Children.count(children);
+  const items = useMemo(() => Children.toArray(children), [children]);
+  const resolvedItemCount = items.length;
+  const cloneCount = computeCloneCount(resolvedItemCount, hasOverflow, MAX_VISIBLE_SLOTS);
+  const slots = useMemo(
+    () => buildLoopSlots(resolvedItemCount, cloneCount),
+    [resolvedItemCount, cloneCount],
+  );
 
-  const syncMetrics = useCallback(() => {
-    const el = trackRef.current;
-    if (!el) return;
-    const next = measureTrack(el);
-    setHasOverflow((prev) => (prev === next.hasOverflow ? prev : next.hasOverflow));
+  const clearSettleTimers = useCallback(() => {
+    if (scrollIdleTimerRef.current !== null) {
+      window.clearTimeout(scrollIdleTimerRef.current);
+      scrollIdleTimerRef.current = null;
+    }
+    if (programmaticFallbackTimerRef.current !== null) {
+      window.clearTimeout(programmaticFallbackTimerRef.current);
+      programmaticFallbackTimerRef.current = null;
+    }
   }, []);
 
+  const cancelSnapRestore = useCallback(() => {
+    if (snapRestoreRafRef.current !== null) {
+      window.cancelAnimationFrame(snapRestoreRafRef.current);
+      snapRestoreRafRef.current = null;
+    }
+    if (snapRestoreRaf2Ref.current !== null) {
+      window.cancelAnimationFrame(snapRestoreRaf2Ref.current);
+      snapRestoreRaf2Ref.current = null;
+    }
+  }, []);
+
+  /** scroll-snap·scroll-behavior를 일시 해제하고 강제 리플로우 후 무음 위치 이동 */
+  const performSilentSnap = useCallback(
+    (el: HTMLDivElement, targetLeft: number) => {
+      cancelSnapRestore();
+      clearSettleTimers();
+      isSnappingRef.current = true;
+
+      el.style.scrollSnapType = 'none';
+      el.style.scrollBehavior = 'auto';
+      el.scrollLeft = targetLeft;
+      void el.offsetLeft;
+
+      snapRestoreRafRef.current = window.requestAnimationFrame(() => {
+        snapRestoreRafRef.current = null;
+        el.style.scrollSnapType = '';
+        el.style.scrollBehavior = '';
+        snapRestoreRaf2Ref.current = window.requestAnimationFrame(() => {
+          snapRestoreRaf2Ref.current = null;
+          isSnappingRef.current = false;
+        });
+      });
+    },
+    [cancelSnapRestore, clearSettleTimers],
+  );
+
+  /** 스크롤 정착 시 복제 영역에 있으면 픽셀 동일한 실제 구간으로 무음 복귀 */
+  const settleAndWrap = useCallback(() => {
+    const el = trackRef.current;
+    if (!el || isSnappingRef.current || isPointerDownRef.current) return;
+    pendingTargetRef.current = null;
+    clearSettleTimers();
+
+    if (!hasOverflow || cloneCount <= 0) return;
+
+    const { geometry } = measureTrackGeometry(el, resolvedItemCount, cloneCount);
+    const wrap = computeSilentWrap(el.scrollLeft, geometry, LOOP_TOLERANCE);
+    if (wrap.needsWrap) {
+      performSilentSnap(el, wrap.targetScrollLeft);
+    }
+  }, [hasOverflow, cloneCount, resolvedItemCount, clearSettleTimers, performSilentSnap]);
+
+  const scheduleScrollIdleSettle = useCallback(() => {
+    if (scrollIdleTimerRef.current !== null) {
+      window.clearTimeout(scrollIdleTimerRef.current);
+    }
+    scrollIdleTimerRef.current = window.setTimeout(() => {
+      scrollIdleTimerRef.current = null;
+      settleAndWrap();
+    }, SCROLL_IDLE_SETTLE_MS);
+  }, [settleAndWrap]);
+
+  /** 마운트·itemCount 변경·hasOverflow 전환 시 페인트 전에 실제 0번 카드로 무음 정렬 */
+  useLayoutEffect(() => {
+    const el = trackRef.current;
+    if (!el) return;
+
+    const measured = measureTrackGeometry(el, resolvedItemCount, cloneCount);
+    if (measured.hasOverflow !== hasOverflow) {
+      setHasOverflow(measured.hasOverflow);
+      return;
+    }
+
+    disableCloneTabStops(el);
+    pendingTargetRef.current = null;
+    lastTrackWidthRef.current = el.clientWidth;
+
+    if (measured.hasOverflow && cloneCount > 0) {
+      const bounds = getLoopBounds(measured.geometry, LOOP_TOLERANCE);
+      if (bounds.valid) {
+        performSilentSnap(el, bounds.realStartOffset);
+      }
+    } else if (el.scrollLeft !== 0) {
+      performSilentSnap(el, 0);
+    }
+  }, [resolvedItemCount, itemCount, hasOverflow, cloneCount, performSilentSnap]);
+
+  /** 카드 내부 동적 변경(예: 좋아요 업데이트) 시 복제 슬롯의 Tab 제외 속성 유지 */
+  useEffect(() => {
+    const el = trackRef.current;
+    if (!el || cloneCount <= 0) return;
+    disableCloneTabStops(el);
+  }, [cloneCount, children]);
+
+  /** scroll / scrollend 및 리사이즈 감지 */
   useEffect(() => {
     const el = trackRef.current;
     if (!el) return;
 
-    let rafId = 0;
-    const scheduleSync = () => {
-      if (rafId) return;
-      rafId = window.requestAnimationFrame(() => {
-        rafId = 0;
-        syncMetrics();
+    const handleScroll = () => {
+      if (isSnappingRef.current) return;
+      if (programmaticFallbackTimerRef.current !== null) {
+        window.clearTimeout(programmaticFallbackTimerRef.current);
+        programmaticFallbackTimerRef.current = null;
+      }
+      if (!isPointerDownRef.current) {
+        scheduleScrollIdleSettle();
+      }
+    };
+
+    const handleScrollEnd = () => {
+      if (isSnappingRef.current || isPointerDownRef.current) return;
+      settleAndWrap();
+    };
+
+    let resizeRafId = 0;
+    const handleResize = () => {
+      if (resizeRafId) return;
+      resizeRafId = window.requestAnimationFrame(() => {
+        resizeRafId = 0;
+        const track = trackRef.current;
+        if (!track) return;
+
+        const nextWidth = track.clientWidth;
+        const widthChanged = Math.abs(nextWidth - lastTrackWidthRef.current) > 1;
+        const measured = measureTrackGeometry(track, resolvedItemCount, cloneCount);
+
+        if (measured.hasOverflow !== hasOverflow) {
+          lastTrackWidthRef.current = nextWidth;
+          setHasOverflow(measured.hasOverflow);
+          return;
+        }
+
+        if (!widthChanged) return;
+        lastTrackWidthRef.current = nextWidth;
+        pendingTargetRef.current = null;
+
+        if (measured.hasOverflow && cloneCount > 0) {
+          const bounds = getLoopBounds(measured.geometry, LOOP_TOLERANCE);
+          if (bounds.valid) {
+            performSilentSnap(track, bounds.realStartOffset);
+          }
+        } else if (track.scrollLeft !== 0) {
+          performSilentSnap(track, 0);
+        }
       });
     };
 
-    syncMetrics();
-
-    el.addEventListener('scroll', scheduleSync, { passive: true });
+    el.addEventListener('scroll', handleScroll, { passive: true });
+    el.addEventListener('scrollend', handleScrollEnd);
 
     let ro: ResizeObserver | null = null;
     if (typeof ResizeObserver !== 'undefined') {
-      ro = new ResizeObserver(scheduleSync);
+      ro = new ResizeObserver(handleResize);
       ro.observe(el);
-      for (const child of Array.from(el.children)) {
-        ro.observe(child);
+      const firstRealChild = el.children[cloneCount] ?? el.children[0];
+      if (firstRealChild) {
+        ro.observe(firstRealChild);
       }
     } else {
-      window.addEventListener('resize', scheduleSync);
+      window.addEventListener('resize', handleResize);
     }
 
     return () => {
-      if (rafId) window.cancelAnimationFrame(rafId);
-      el.removeEventListener('scroll', scheduleSync);
+      if (resizeRafId) window.cancelAnimationFrame(resizeRafId);
+      el.removeEventListener('scroll', handleScroll);
+      el.removeEventListener('scrollend', handleScrollEnd);
       if (ro) {
         ro.disconnect();
       } else {
-        window.removeEventListener('resize', scheduleSync);
+        window.removeEventListener('resize', handleResize);
       }
     };
-  }, [resolvedCount, syncMetrics]);
+  }, [
+    resolvedItemCount,
+    hasOverflow,
+    cloneCount,
+    performSilentSnap,
+    scheduleScrollIdleSettle,
+    settleAndWrap,
+  ]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return;
@@ -156,68 +354,96 @@ export default function CardCarousel({ label, itemCount, children }: CardCarouse
       if (pointerCooldownTimerRef.current !== null) {
         window.clearTimeout(pointerCooldownTimerRef.current);
       }
+      clearSettleTimers();
+      cancelSnapRestore();
     };
-  }, []);
+  }, [clearSettleTimers, cancelSnapRestore]);
 
-  const scrollToOffset = useCallback(
-    (targetLeft: number) => {
+  const executeStep = useCallback(
+    (direction: 1 | -1) => {
       const el = trackRef.current;
       if (!el) return;
-      el.scrollTo({
-        left: targetLeft,
-        behavior: reducedMotion ? 'auto' : 'smooth',
+
+      const { hasOverflow: measuredOverflow, geometry } = measureTrackGeometry(
+        el,
+        resolvedItemCount,
+        cloneCount,
+      );
+      if (!measuredOverflow || geometry.cloneCount <= 0) return;
+
+      const plan = computeStepPlan(direction, el.scrollLeft, geometry, {
+        pendingTarget: pendingTargetRef.current,
+        instant: reducedMotion,
+        tolerance: LOOP_TOLERANCE,
       });
+      if (!plan.shouldScroll) return;
+
+      clearSettleTimers();
+
+      if (reducedMotion) {
+        pendingTargetRef.current = null;
+        performSilentSnap(el, plan.targetScrollLeft);
+        return;
+      }
+
+      if (plan.preShiftScrollLeft !== null) {
+        // 연속 클릭으로 클론 끝단에 도달하기 전에 픽셀 동일한 위치로 무음 정규화 후 부드럽게 이동
+        cancelSnapRestore();
+        isSnappingRef.current = true;
+        el.style.scrollSnapType = 'none';
+        el.style.scrollBehavior = 'auto';
+        el.scrollLeft = plan.preShiftScrollLeft;
+        void el.offsetLeft;
+        el.style.scrollBehavior = '';
+
+        pendingTargetRef.current = plan.targetScrollLeft;
+        el.scrollTo({
+          left: plan.targetScrollLeft,
+          behavior: 'smooth',
+        });
+
+        snapRestoreRafRef.current = window.requestAnimationFrame(() => {
+          snapRestoreRafRef.current = null;
+          el.style.scrollSnapType = '';
+          isSnappingRef.current = false;
+        });
+      } else {
+        if (snapRestoreRafRef.current !== null || snapRestoreRaf2Ref.current !== null) {
+          cancelSnapRestore();
+          el.style.scrollSnapType = '';
+          el.style.scrollBehavior = '';
+          isSnappingRef.current = false;
+        }
+        pendingTargetRef.current = plan.targetScrollLeft;
+        el.scrollTo({
+          left: plan.targetScrollLeft,
+          behavior: 'smooth',
+        });
+      }
+
+      programmaticFallbackTimerRef.current = window.setTimeout(() => {
+        programmaticFallbackTimerRef.current = null;
+        settleAndWrap();
+      }, PROGRAMMATIC_SETTLE_FALLBACK_MS);
     },
-    [reducedMotion],
+    [
+      resolvedItemCount,
+      cloneCount,
+      reducedMotion,
+      clearSettleTimers,
+      performSilentSnap,
+      cancelSnapRestore,
+      settleAndWrap,
+    ],
   );
 
   const stepNext = useCallback(() => {
-    const el = trackRef.current;
-    if (!el) return;
-    const { stepTargets } = measureTrack(el);
-    if (stepTargets.length <= 1) return;
-
-    const cur = el.scrollLeft;
-    const maxScroll = stepTargets[stepTargets.length - 1];
-
-    if (cur >= maxScroll - TOLERANCE) {
-      scrollToOffset(0);
-      return;
-    }
-
-    for (let i = 0; i < stepTargets.length; i++) {
-      if (stepTargets[i] > cur + TOLERANCE) {
-        scrollToOffset(stepTargets[i]);
-        return;
-      }
-    }
-
-    scrollToOffset(0);
-  }, [scrollToOffset]);
+    executeStep(1);
+  }, [executeStep]);
 
   const stepPrev = useCallback(() => {
-    const el = trackRef.current;
-    if (!el) return;
-    const { stepTargets } = measureTrack(el);
-    if (stepTargets.length <= 1) return;
-
-    const cur = el.scrollLeft;
-    const maxScroll = stepTargets[stepTargets.length - 1];
-
-    if (cur <= TOLERANCE) {
-      scrollToOffset(maxScroll);
-      return;
-    }
-
-    for (let i = stepTargets.length - 1; i >= 0; i--) {
-      if (stepTargets[i] < cur - TOLERANCE) {
-        scrollToOffset(stepTargets[i]);
-        return;
-      }
-    }
-
-    scrollToOffset(maxScroll);
-  }, [scrollToOffset]);
+    executeStep(-1);
+  }, [executeStep]);
 
   const handlePrevClick = useCallback(() => {
     stepPrev();
@@ -239,17 +465,33 @@ export default function CardCarousel({ label, itemCount, children }: CardCarouse
     }, POINTER_COOLDOWN_MS);
   }, []);
 
+  const handlePointerEnd = useCallback(() => {
+    if (!isPointerDownRef.current) return;
+    isPointerDownRef.current = false;
+    schedulePointerCooldown();
+    scheduleScrollIdleSettle();
+  }, [schedulePointerCooldown, scheduleScrollIdleSettle]);
+
   const handlePointerDown = useCallback(() => {
     if (pointerCooldownTimerRef.current !== null) {
       window.clearTimeout(pointerCooldownTimerRef.current);
       pointerCooldownTimerRef.current = null;
     }
+    isPointerDownRef.current = true;
     setIsPointerPaused(true);
   }, []);
 
-  const handlePointerEnd = useCallback(() => {
-    schedulePointerCooldown();
-  }, [schedulePointerCooldown]);
+  useEffect(() => {
+    const onWindowPointerEnd = () => {
+      handlePointerEnd();
+    };
+    window.addEventListener('pointerup', onWindowPointerEnd);
+    window.addEventListener('pointercancel', onWindowPointerEnd);
+    return () => {
+      window.removeEventListener('pointerup', onWindowPointerEnd);
+      window.removeEventListener('pointercancel', onWindowPointerEnd);
+    };
+  }, [handlePointerEnd]);
 
   const handleFocus = useCallback(() => {
     setIsFocusedWithin(true);
@@ -310,7 +552,26 @@ export default function CardCarousel({ label, itemCount, children }: CardCarouse
         </button>
       ) : null}
       <div ref={trackRef} className={s.track}>
-        {children}
+        {slots.map((slot) => {
+          const node = items[slot.realIndex];
+          const childKey =
+            isValidElement(node) && node.key !== null ? String(node.key) : String(slot.realIndex);
+          const wrapperKey =
+            slot.kind === 'real'
+              ? `real-${slot.realIndex}-${childKey}`
+              : `${slot.kind}-${slot.segmentIndex}-${childKey}`;
+
+          return (
+            <div
+              key={wrapperKey}
+              className={s.slide}
+              aria-hidden={slot.isClone ? true : undefined}
+              data-carousel-clone={slot.isClone ? 'true' : undefined}
+            >
+              {node}
+            </div>
+          );
+        })}
       </div>
       {hasOverflow ? (
         <button
