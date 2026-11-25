@@ -1,9 +1,29 @@
 import { getSupabase, throwDatabaseError } from "../config/supabase";
 import type { RoomRow } from "../types/database.types";
-import type { Room } from "../types/domain.types";
+import type { Room, RoomFacing } from "../types/domain.types";
 import HttpError from "../utils/httpError";
 import { objectBody, textField } from "../utils/input";
-import { validateRoomFields } from "../utils/roomValidation";
+import { VALID_ROOM_FACINGS, validateRoomFields } from "../utils/roomValidation";
+
+const VALID_FACING_SET = new Set<string>(VALID_ROOM_FACINGS);
+
+function parseRowFacing(value: unknown): RoomFacing | undefined {
+  return typeof value === "string" && VALID_FACING_SET.has(value)
+    ? (value as RoomFacing)
+    : undefined;
+}
+
+function isMissingFacingMigrationError(error: { code?: string; message?: string }): boolean {
+  const code = error.code ?? "";
+  const message = error.message ?? "";
+  if (code === "42501" || code === "23514" || /ROOM_FORBIDDEN/i.test(message)) {
+    return false;
+  }
+  if (code === "PGRST202" || code === "42883" || code === "42703") {
+    return true;
+  }
+  return /p_facing|upsert_room|column .*facing/i.test(message);
+}
 
 export function rowToRoom(row: RoomRow): Room {
   const parseJson = (val: unknown) => {
@@ -18,6 +38,7 @@ export function rowToRoom(row: RoomRow): Room {
     return val;
   };
 
+  const facing = parseRowFacing(row.facing);
   return {
     id: row.id,
     title: row.title,
@@ -28,6 +49,7 @@ export function rowToRoom(row: RoomRow): Room {
     thumbnail: row.thumbnail ?? undefined,
     remixedFrom: row.remixed_from ?? undefined,
     ownerId: row.owner_id ?? undefined,
+    ...(facing ? { facing } : {}),
     createdAt: new Date(row.created_at).getTime(),
     updatedAt: new Date(row.updated_at).getTime(),
   };
@@ -68,7 +90,7 @@ export async function upsertRoom(
 
   const title =
     textField(input.title ?? "무제 방", "title", false, 100) || "무제 방";
-  const { walls, furniture, customSpecs, thumbnail, remixedFrom } =
+  const { walls, furniture, customSpecs, thumbnail, remixedFrom, facing } =
     validateRoomFields(input);
   const wallHeight =
     typeof input.wallHeight === "number" &&
@@ -77,7 +99,7 @@ export async function upsertRoom(
       ? input.wallHeight
       : 2.4;
 
-  const { data, error } = await getSupabase().rpc("upsert_room", {
+  const baseParams = {
     p_id: roomId,
     p_owner_id: userId,
     p_title: title,
@@ -87,7 +109,22 @@ export async function upsertRoom(
     p_wall_height: wallHeight,
     p_thumbnail: thumbnail,
     p_remixed_from: remixedFrom,
+  };
+
+  let { data, error } = await getSupabase().rpc("upsert_room", {
+    ...baseParams,
+    p_facing: facing ?? "S",
   });
+
+  if (error && isMissingFacingMigrationError(error)) {
+    console.warn(
+      "[rooms.service] upsert_room 10-arg RPC unavailable; retrying legacy 9-arg RPC.",
+      { code: error.code, message: error.message },
+    );
+    const fallback = await getSupabase().rpc("upsert_room", baseParams);
+    data = fallback.data;
+    error = fallback.error;
+  }
 
   if (error) throwDatabaseError(error);
   if (!data?.length) {

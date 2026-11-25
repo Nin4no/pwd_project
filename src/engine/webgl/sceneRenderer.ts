@@ -32,7 +32,7 @@ import {
 } from './resources';
 import { computeWallDataList, roomOffset, type ComputedWallData } from './RoomMesh';
 import { computeFocusOccluders, type FocusOccludedSet } from './occlusion';
-import { LIGHTING_PRESETS, type LightingPreset } from './lighting';
+import { computeSunLighting, type LightingPreset } from './lighting';
 import type { AlignGuideSegment } from '../layout/alignSnap';
 import { AlignGuideLayer } from './alignGuideLayer';
 
@@ -166,6 +166,10 @@ export class RoomWebGLRenderer {
 
   setLightingPreset(preset: LightingPreset): void {
     this.lightingPreset = preset;
+  }
+
+  getCameraAzimuth(): number {
+    return this.controller.getAzimuth();
   }
 
   focusSelected(): void {
@@ -315,8 +319,7 @@ export class RoomWebGLRenderer {
     let sel = this.selectionGpuCache.get(spec.id);
     if (!sel) {
       const [w, d, h] = spec.size;
-      const elev = spec.wallMounted ? spec.elevation ?? 0 : 0;
-      const wireGeom = createBoxEdgesGeometry(w + 0.02, h + 0.02, d + 0.02, 0, elev + h / 2, 0);
+      const wireGeom = createBoxEdgesGeometry(w + 0.02, h + 0.02, d + 0.02, 0, h / 2, 0);
       const ringGeom = createPlaneXZGeometry(w + 0.06, d + 0.06, 0.004);
       sel = {
         wireMesh: new GpuMesh(this.gl, wireGeom),
@@ -486,8 +489,8 @@ export class RoomWebGLRenderer {
       this.furnitureOpacities.set(item.id, next);
     }
 
-    // 화면 클리어 (조명 프리셋 배경색)
-    const light = LIGHTING_PRESETS[this.lightingPreset];
+    // 화면 클리어 (조명 프리셋 + 방 향 기준 태양광)
+    const light = computeSunLighting(this.lightingPreset, this.room.facing);
     gl.depthMask(true);
     gl.clearColor(light.clearColor[0], light.clearColor[1], light.clearColor[2], 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -500,6 +503,8 @@ export class RoomWebGLRenderer {
 
     const [kx, ky, kz] = light.keyDir;
     const kLen = Math.hypot(kx, ky, kz) || 1;
+    const [fx, fy, fz] = light.fillDir;
+    const fLen = Math.hypot(fx, fy, fz) || 1;
 
     // 1. 바닥 메쉬 렌더링
     this.litShader.use();
@@ -507,6 +512,7 @@ export class RoomWebGLRenderer {
     this.litShader.setVec3('u_groundColor', light.ground[0], light.ground[1], light.ground[2]);
     this.litShader.setVec3('u_keyDir', kx / kLen, ky / kLen, kz / kLen);
     this.litShader.setVec3('u_keyColor', light.keyColor[0], light.keyColor[1], light.keyColor[2]);
+    this.litShader.setVec3('u_fillDir', fx / fLen, fy / fLen, fz / fLen);
     this.litShader.setVec3('u_fillColor', light.fillColor[0], light.fillColor[1], light.fillColor[2]);
     this.litShader.setMat4('u_viewProj', vp);
     this.litShader.setVec3('u_cameraPos', camPos.x, camPos.y, camPos.z);
@@ -563,6 +569,7 @@ export class RoomWebGLRenderer {
       alpha: number;
       wasOpaquePart: boolean;
       distSq: number;
+      elev: number;
       rotY: number;
       sx: number;
       sy: number;
@@ -572,15 +579,16 @@ export class RoomWebGLRenderer {
     for (const item of this.room.furniture) {
       const spec = this.getSpec(item.specId);
       if (!spec) continue;
+      const elev = spec.wallMounted ? (spec.elevation ?? 0) : 0;
       const rotY = (item.rotation * Math.PI) / 180;
       const [sx, sy, sz] = getScaleXZ(item, spec);
       const itemOpacity = this.furnitureOpacities.get(item.id) ?? 1;
       const dx = item.x - camPos.x;
-      const dy = -camPos.y;
+      const dy = elev - camPos.y;
       const dz = item.z - camPos.z;
       const distSq = dx * dx + dy * dy + dz * dz;
 
-      this.modelMat.composeTRS(item.x, 0, item.z, rotY, sx, sy, sz);
+      this.modelMat.composeTRS(item.x, elev, item.z, rotY, sx, sy, sz);
       this.litShader.setMat4('u_model', this.modelMat.elements);
       this.litShader.setFloat('u_unlit', 0.0);
 
@@ -594,6 +602,7 @@ export class RoomWebGLRenderer {
             alpha: effectiveAlpha,
             wasOpaquePart: p.alpha >= 0.99,
             distSq,
+            elev,
             rotY,
             sx,
             sy,
@@ -621,9 +630,10 @@ export class RoomWebGLRenderer {
       if (!spec) continue;
 
       const [r, g, b] = parseHexColor(isColliding ? '#ef4444' : '#1e6bff');
+      const elev = spec.wallMounted ? (spec.elevation ?? 0) : 0;
       const rotY = (item.rotation * Math.PI) / 180;
       const [sx, sy, sz] = getScaleXZ(item, spec);
-      this.modelMat.composeTRS(item.x, 0, item.z, rotY, sx, sy, sz);
+      this.modelMat.composeTRS(item.x, elev, item.z, rotY, sx, sy, sz);
       this.litShader.setMat4('u_model', this.modelMat.elements);
       this.litShader.setVec3('u_color', r, g, b);
       this.litShader.setVec3('u_emissive', 0, 0, 0);
@@ -645,12 +655,12 @@ export class RoomWebGLRenderer {
     gl.depthMask(false);
     this.litShader.setFloat('u_unlit', 0.0);
     for (const entry of transparentFurnitureDraws) {
-      const { item, part, alpha, wasOpaquePart, rotY, sx, sy, sz } = entry;
+      const { item, part, alpha, wasOpaquePart, elev, rotY, sx, sy, sz } = entry;
       if (wasOpaquePart) {
         gl.enable(gl.CULL_FACE);
         gl.cullFace(gl.BACK);
       }
-      this.modelMat.composeTRS(item.x, 0, item.z, rotY, sx, sy, sz);
+      this.modelMat.composeTRS(item.x, elev, item.z, rotY, sx, sy, sz);
       this.litShader.setMat4('u_model', this.modelMat.elements);
       this.litShader.setVec3('u_color', part.color[0], part.color[1], part.color[2]);
       this.litShader.setFloat('u_alpha', alpha);

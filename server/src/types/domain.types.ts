@@ -44,6 +44,10 @@ export type ProceduralPrimitive =
       openEnded?: boolean;
     } & PrimMat);
 
+export type RoomFacing = 'N' | 'NE' | 'E' | 'SE' | 'S' | 'SW' | 'W' | 'NW';
+
+export type WallMountMode = 'opening' | 'surface';
+
 export interface FurnitureSpec {
   id: string;
   name: string;
@@ -51,6 +55,7 @@ export interface FurnitureSpec {
   size: [number, number, number];
   color: string;
   wallMounted?: boolean;
+  wallMountMode?: WallMountMode;
   elevation?: number;
   price?: number;
   brand?: string;
@@ -87,6 +92,7 @@ export interface Room {
   remixedFrom?: string;
   ownerId?: string;
   customSpecs?: FurnitureSpec[];
+  facing?: RoomFacing;
 }
 
 export interface ShowroomPost {

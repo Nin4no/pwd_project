@@ -6,6 +6,10 @@ export interface NumberFieldProps {
   min?: number;
   max?: number;
   step?: number;
+  /** 소수 자릿수 고정 표시 및 반올림 (예: 2 -> "3.50") */
+  precision?: number;
+  /** 값 확정 시점 ('change': 범위 내 입력 즉시, 'blur': 포커스 해제·Enter·방향키 스텝 시) */
+  commitMode?: 'change' | 'blur';
   disabled?: boolean;
   /** 확정된 값(범위 보정 후) */
   onCommit: (value: number) => void;
@@ -22,6 +26,7 @@ export interface NumberFieldProps {
 /**
  * 입력 중에는 값을 강제로 보정하지 않는 숫자 입력칸 (현행 studio/NumberField 이식).
  * - 타이핑 중간값(예: 120을 치려고 입력한 "1")이 min으로 튀지 않도록 범위 안일 때만 즉시 반영
+ * - commitMode="blur"일 때는 타이핑 중 중간값 커밋을 생략하고 Blur/Enter(또는 화살표 스텝)에서 확정
  * - 범위를 벗어난 값은 포커스를 잃거나 Enter를 누를 때 min/max로 보정해 확정, Esc는 취소
  */
 export default function NumberField({
@@ -29,6 +34,8 @@ export default function NumberField({
   min = -Infinity,
   max = Infinity,
   step = 1,
+  precision,
+  commitMode = 'change',
   disabled,
   onCommit,
   label,
@@ -40,29 +47,36 @@ export default function NumberField({
 }: NumberFieldProps) {
   const autoId = useId();
   const inputId = id ?? `${autoId}-num`;
-  const [text, setText] = useState(String(value));
+  const fmt = (n: number) => (precision !== undefined ? n.toFixed(precision) : String(n));
+  const round = (n: number) => (precision !== undefined ? Number(n.toFixed(precision)) : n);
+  const [text, setText] = useState(() => fmt(value));
   const editing = useRef(false);
   const cancelled = useRef(false);
+  const stepKey = useRef(false);
 
   useEffect(() => {
-    if (!editing.current) setText(String(value));
-  }, [value]);
+    if (!editing.current) {
+      setText(precision !== undefined ? value.toFixed(precision) : String(value));
+    }
+  }, [value, precision]);
 
   const finish = (raw: string) => {
     editing.current = false;
+    stepKey.current = false;
     if (cancelled.current) {
       cancelled.current = false;
-      setText(String(value));
+      setText(fmt(value));
       return;
     }
     const n = parseFloat(raw);
     if (Number.isNaN(n)) {
-      setText(String(value));
+      setText(fmt(value));
       return;
     }
     const clamped = Math.max(min, Math.min(max, n));
-    setText(String(clamped));
-    if (clamped !== value) onCommit(clamped);
+    const finalVal = round(clamped);
+    setText(fmt(finalVal));
+    if (Math.abs(finalVal - value) > 1e-9) onCommit(finalVal);
   };
 
   return (
@@ -90,11 +104,21 @@ export default function NumberField({
           onChange={(e) => {
             editing.current = true;
             setText(e.target.value);
-            const n = parseFloat(e.target.value);
-            if (!Number.isNaN(n) && n >= min && n <= max && n !== value) onCommit(n);
+            const fromStep = stepKey.current;
+            stepKey.current = false;
+            if (commitMode !== 'blur' || fromStep) {
+              const n = parseFloat(e.target.value);
+              if (!Number.isNaN(n) && n >= min && n <= max) {
+                const finalVal = round(n);
+                if (Math.abs(finalVal - value) > 1e-9) onCommit(finalVal);
+              }
+            }
           }}
           onBlur={(e) => finish(e.target.value)}
           onKeyDown={(e) => {
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+              stepKey.current = true;
+            }
             if (e.key === 'Enter') e.currentTarget.blur();
             if (e.key === 'Escape') {
               cancelled.current = true;

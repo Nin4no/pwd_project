@@ -164,6 +164,74 @@ export function clothesCare(w: number, d: number, h: number, body = '#4b5058', d
   ];
 }
 
+/** 벽부착 2구 접지 콘센트 (로컬 [0..h], +Z 전면) */
+export function wallOutlet(w = 0.16, d = 0.025, h = 0.10): ProceduralPrimitive[] {
+  const cy = h / 2;
+  const backD = d * 0.36;
+  const plateD = d * 0.44;
+  const zBack = -d / 2 + backD / 2;
+  const zPlate = -d / 2 + backD + plateD / 2;
+  const zFront = -d / 2 + backD + plateD;
+  const p: ProceduralPrimitive[] = [
+    // 후면 베벨 백플레이트
+    box([w, h, backD], [0, cy, zBack], '#cbd5e1', { roughness: 0.45 }),
+    // 전면 새틴 화이트 커버 플레이트
+    box([w - 0.004, h - 0.004, plateD], [0, cy, zPlate], '#f8fafc', { roughness: 0.25 }),
+    // 내부 리세스 베젤 트림
+    box([w - 0.022, h - 0.022, 0.002], [0, cy, zFront + 0.001], '#e2e8f0', { roughness: 0.35 }),
+  ];
+  for (const sx of [-w * 0.225, w * 0.225]) {
+    // 소켓 외곽 림 + 원형 Type-F 슈코 소켓 캐비티
+    p.push(...disc(0.0225, sx, cy, zFront + 0.0022, 0.0014, '#cbd5e1', { roughness: 0.35 }, 11));
+    p.push(...disc(0.019, sx, cy, zFront + 0.0031, 0.0014, '#334155', { roughness: 0.6 }, 11));
+    // 좌우 플러그 핀 홀 2개
+    for (const px of [-0.0075, 0.0075]) {
+      p.push(box([0.0042, 0.0042, 0.0014], [sx + px, cy, zFront + 0.004], '#0f172a', { roughness: 0.9 }));
+    }
+    // 상하 황동 접지 클립
+    for (const gy of [-0.016, 0.016]) {
+      p.push(box([0.0036, 0.0044, 0.0016], [sx, cy + gy, zFront + 0.0041], '#d97706', { metalness: 0.85, roughness: 0.25 }));
+    }
+  }
+  return p;
+}
+
+/** 바닥·책상용 4구 개별/통합 스위치 멀티탭 (로컬 [0..h], +Y 상면 소켓) */
+export function powerStrip(w = 0.28, d = 0.075, h = 0.04): ProceduralPrimitive[] {
+  const plinthH = 0.006;
+  const bodyH = h - plinthH - 0.004;
+  const topY = plinthH + bodyH;
+  const p: ProceduralPrimitive[] = [
+    // 하단 다크 플린스
+    box([w - 0.014, plinthH, d - 0.008], [-0.004, plinthH / 2, 0], '#27272a', { roughness: 0.7 }),
+    // 매트 오프화이트 본체 하우징
+    box([w - 0.012, bodyH, d], [-0.004, plinthH + bodyH / 2, 0], '#f4f4f5', { roughness: 0.35 }),
+    // 상단 데크 베젤
+    box([w - 0.022, 0.0024, d - 0.008], [-0.004, topY + 0.0012, 0], '#fafafa', { roughness: 0.28 }),
+    // 좌측 전원 로커 스위치 베젤 + 발광 레드 스위치
+    box([0.022, 0.002, 0.032], [-w / 2 + 0.032, topY + 0.0024, 0], '#d4d4d8', { roughness: 0.4 }),
+    box([0.016, 0.0036, 0.024], [-w / 2 + 0.032, topY + 0.0042, 0], '#ef4444', { emissive: '#dc2626', roughness: 0.25 }),
+    // 우측 전선 스트레인 릴리프 부트
+    box([0.014, 0.014, 0.018], [w / 2 - 0.003, 0.016, 0], '#3f3f46', { roughness: 0.6 }),
+    box([0.01, 0.009, 0.01], [w / 2 + 0.005, 0.015, 0], '#27272a', { roughness: 0.7 }),
+  ];
+  for (let i = 0; i < 4; i++) {
+    const sx = -0.056 + i * 0.051;
+    // 원형 소켓 외곽 림 + 다크 리세스 소켓 웰
+    p.push(cyl(0.0205, 0.002, [sx, topY + 0.0024, 0], '#e4e4e7', { segments: 24, roughness: 0.35 }));
+    p.push(cyl(0.0172, 0.0022, [sx, topY + 0.0031, 0], '#334155', { segments: 24, roughness: 0.65 }));
+    // 좌우 핀 홀
+    for (const px of [-0.0065, 0.0065]) {
+      p.push(cyl(0.0023, 0.0024, [sx + px, topY + 0.0038, 0], '#0f172a', { segments: 12, roughness: 0.9 }));
+    }
+    // 상하(+Z/-Z) 황동 접지 클립
+    for (const gz of [-0.0148, 0.0148]) {
+      p.push(box([0.0032, 0.0026, 0.0038], [sx, topY + 0.0039, gz], '#d97706', { metalness: 0.85, roughness: 0.25 }));
+    }
+  }
+  return p;
+}
+
 const ohou = (q: string) => `https://ohou.se/search/index?query=${q}`;
 
 /** 실규격 가전 카탈로그 (size = [가로, 깊이, 높이] m) */
@@ -179,4 +247,6 @@ export const APPLIANCES: FurnitureSpec[] = [
   { id: 'aircon-stand', name: '스탠드 에어컨', category: 'appliance', size: [0.37, 0.33, 1.83], color: WHITE, brand: '기본 가전', material: 'ABS', shopUrl: ohou('스탠드에어컨'), source: 'catalog', primitives: standAircon(0.37, 0.33, 1.83) },
   { id: 'air-purifier', name: '공기청정기', category: 'appliance', size: [0.32, 0.32, 0.68], color: WHITE, brand: '기본 가전', material: 'ABS', shopUrl: ohou('공기청정기'), source: 'catalog', primitives: airPurifier(0.32, 0.68) },
   { id: 'clothes-care', name: '의류관리기', category: 'appliance', size: [0.45, 0.6, 1.85], color: '#4b5058', brand: '기본 가전', material: '미러 글라스 도어', shopUrl: ohou('의류관리기'), source: 'catalog', primitives: clothesCare(0.45, 0.6, 1.85) },
+  { id: 'appliance-wall-outlet', name: '벽 콘센트 (2구)', category: 'appliance', size: [0.16, 0.025, 0.10], wallMounted: true, wallMountMode: 'surface', elevation: 0.30, color: '#f8fafc', brand: '기본 전기', material: '난연 ABS 플레이트 · 2구 접지 콘센트', shopUrl: ohou('벽콘센트'), source: 'catalog', primitives: wallOutlet(0.16, 0.025, 0.10) },
+  { id: 'appliance-power-strip', name: '멀티탭 (4구)', category: 'appliance', size: [0.28, 0.075, 0.04], color: '#f4f4f5', brand: '기본 전기', material: '난연 PC · 4구 개별스위치 콘센트', shopUrl: ohou('4구멀티탭'), source: 'catalog', primitives: powerStrip(0.28, 0.075, 0.04) },
 ];

@@ -86,44 +86,52 @@ export default function Inspector({ catalog }: { catalog: StudioCatalog }) {
 
       <section className={s.sectionCard}>
         <div className={s.sectionHead}>
-          <label className={s.sectionLabel} htmlFor="insp-rot">회전</label>
+          <label className={s.sectionLabel} htmlFor={spec.wallMounted ? undefined : 'insp-rot'}>회전</label>
           <div className={s.rotMeta}>
             <span className={s.degreeBadge}>{rotDeg}°</span>
-            <IconButton
-              size="sm"
-              variant="ghost"
-              aria-label="90° 회전"
-              icon={<RotateIcon />}
-              onClick={() => rotate(90)}
-            />
+            {!spec.wallMounted && (
+              <IconButton
+                size="sm"
+                variant="ghost"
+                aria-label="90° 회전"
+                icon={<RotateIcon />}
+                onClick={() => rotate(90)}
+              />
+            )}
           </div>
         </div>
-        <input
-          id="insp-rot"
-          className={s.range}
-          type="range"
-          min={-180}
-          max={180}
-          step={1}
-          value={rotDeg}
-          onChange={(e) => a.patch(f.id, { rotation: Number(e.currentTarget.value) }, { live: true })}
-          onPointerUp={endLive}
-          onKeyUp={endLive}
-          onBlur={endLive}
-        />
-        <div className={s.presetRow} role="group" aria-label="회전 각도 프리셋">
-          {ROTATION_PRESETS.map((deg) => (
-            <button
-              key={deg}
-              type="button"
-              className={s.presetBtn}
-              aria-pressed={rotDeg === deg}
-              onClick={() => a.patch(f.id, { rotation: deg })}
-            >
-              {deg}°
-            </button>
-          ))}
-        </div>
+        {spec.wallMounted ? (
+          <p className={s.wallAutoNote}>벽 방향에 맞춰 자동 정렬돼요</p>
+        ) : (
+          <>
+            <input
+              id="insp-rot"
+              className={s.range}
+              type="range"
+              min={-180}
+              max={180}
+              step={1}
+              value={rotDeg}
+              onChange={(e) => a.patch(f.id, { rotation: Number(e.currentTarget.value) }, { live: true })}
+              onPointerUp={endLive}
+              onKeyUp={endLive}
+              onBlur={endLive}
+            />
+            <div className={s.presetRow} role="group" aria-label="회전 각도 프리셋">
+              {ROTATION_PRESETS.map((deg) => (
+                <button
+                  key={deg}
+                  type="button"
+                  className={s.presetBtn}
+                  aria-pressed={rotDeg === deg}
+                  onClick={() => a.patch(f.id, { rotation: deg })}
+                >
+                  {deg}°
+                </button>
+              ))}
+            </div>
+          </>
+        )}
       </section>
 
       <section className={s.sectionCard}>
@@ -148,9 +156,9 @@ export default function Inspector({ catalog }: { catalog: StudioCatalog }) {
         {sizeOpen && (
           <div className={s.sizeBody}>
             <div className={s.grid3}>
-              <NumberField label="W" value={cm(w)} min={5} max={600} step={1} unit="cm" size="sm" onCommit={(v) => a.patch(f.id, { width: v / 100 })} />
-              <NumberField label="D" value={cm(d)} min={5} max={600} step={1} unit="cm" size="sm" onCommit={(v) => a.patch(f.id, { depth: v / 100 })} />
-              <NumberField label="H" value={cm(h)} min={5} max={400} step={1} unit="cm" size="sm" onCommit={(v) => a.patch(f.id, { height: v / 100 })} />
+              <NumberField label="W" value={cm(w)} min={2} max={600} step={1} unit="cm" size="sm" onCommit={(v) => a.patch(f.id, { width: v / 100 })} />
+              <NumberField label="D" value={cm(d)} min={2} max={600} step={1} unit="cm" size="sm" onCommit={(v) => a.patch(f.id, { depth: v / 100 })} />
+              <NumberField label="H" value={cm(h)} min={2} max={400} step={1} unit="cm" size="sm" onCommit={(v) => a.patch(f.id, { height: v / 100 })} />
             </div>
             {hasCustomSize && (
               <Button

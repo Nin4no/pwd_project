@@ -32,6 +32,7 @@ export type RoomRow = {
   wall_height: number;
   thumbnail: string | null;
   remixed_from: string | null;
+  facing?: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -107,6 +108,7 @@ export interface Database {
           p_wall_height: number;
           p_thumbnail: string | null;
           p_remixed_from: string | null;
+          p_facing?: string;
         };
         Returns: RoomRow[];
       };

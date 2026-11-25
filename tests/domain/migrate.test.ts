@@ -42,6 +42,20 @@ test('스펙 정규화: 카테고리·치수 검증, 알 수 없는 키 제거',
   const s = normalizeSpec({ id: 'x', name: 'n', category: 'bed', size: [1, 2, 0.5], extra: true, source: 'ai', primitives: [] })!;
   assert.deepEqual(Object.keys(s).sort(), ['category', 'color', 'id', 'name', 'primitives', 'size', 'source']);
   assert.equal(s.color, '#cccccc');
+
+  const surf = normalizeSpec({ id: 'o', name: '콘센트', category: 'appliance', size: [0.16, 0.025, 0.1], wallMounted: true, wallMountMode: 'surface', elevation: 0.3 })!;
+  assert.equal(surf.wallMountMode, 'surface');
+  const badMode = normalizeSpec({ id: 'o2', name: '콘센트', category: 'appliance', size: [0.16, 0.025, 0.1], wallMounted: true, wallMountMode: 'ceiling' })!;
+  assert.equal(badMode.wallMountMode, undefined);
+});
+
+test('방 정규화: 유효한 facing은 보존하고 잘못된 값은 제거한다', () => {
+  const valid = normalizeRoom({ id: 'r1', walls: [], facing: 'NE' })!;
+  assert.equal(valid.facing, 'NE');
+  const invalid = normalizeRoom({ id: 'r2', walls: [], facing: 'INVALID' })!;
+  assert.equal(invalid.facing, undefined);
+  const missing = normalizeRoom({ id: 'r3', walls: [] })!;
+  assert.equal(missing.facing, undefined);
 });
 
 test('쇼룸 게시물 정규화: 방이 깨지면 null, 수치는 0 이상', () => {

@@ -383,10 +383,26 @@ export interface OBB {
   cx: number; cz: number; hw: number; hd: number; angle: number; // angle rad
 }
 
+/** 벽 개구부형 여부 (창문·문 등 벽 중심선에 매립되어 개구부를 뚫는 항목) */
+export function isWallOpeningSpec(spec?: FurnitureSpec): boolean {
+  if (!spec?.wallMounted) return false;
+  return spec.wallMountMode
+    ? spec.wallMountMode === 'opening'
+    : spec.category === 'window' || spec.category === 'door';
+}
+
+/** 벽 표면 부착형 여부 (벽 콘센트 등 개구부 없이 벽 내측 면에 밀착되는 항목) */
+export function isWallSurfaceSpec(spec?: FurnitureSpec): boolean {
+  if (!spec?.wallMounted) return false;
+  return spec.wallMountMode
+    ? spec.wallMountMode === 'surface'
+    : spec.category !== 'window' && spec.category !== 'door';
+}
+
 /** 배치된 가구 인스턴스의 실제 [가로(w), 세로/깊이(d), 높이(h)] (단위: m) */
 export function getEffectiveSize(f: PlacedFurniture, spec: FurnitureSpec): [number, number, number] {
-  if (spec.wallMounted) {
-    // 벽 부착형(창문)은 벽 두께(WALL_THICKNESS) 내부에 매립되므로 깊이를 벽 두께로 고정
+  if (isWallOpeningSpec(spec)) {
+    // 벽 개구부형(창문·문)은 벽 두께(WALL_THICKNESS) 내부에 매립되므로 깊이를 벽 두께로 고정
     return [f.width ?? spec.size[0], WALL_THICKNESS, spec.size[2]];
   }
   return [f.width ?? spec.size[0], f.depth ?? spec.size[1], f.height ?? spec.size[2]];
@@ -404,8 +420,8 @@ export function getScaleXZ(f: PlacedFurniture, spec: FurnitureSpec): [number, nu
 
 export function furnitureOBB(f: PlacedFurniture, spec: FurnitureSpec): OBB {
   const [w, d] = getEffectiveSize(f, spec);
-  // 창문(wallMounted)은 벽 내부 개구부에 매립되므로 벽면 밖으로 돌출되지 않도록 충돌 반폭(hd)을 벽 두께 안쪽으로 제한
-  const hd = spec.wallMounted ? Math.min(d, WALL_THICKNESS) * 0.45 : d / 2;
+  // 벽 개구부형(창문·문)은 벽 내부 개구부에 매립되므로 벽면 밖으로 돌출되지 않도록 충돌 반폭(hd)을 벽 두께 안쪽으로 제한
+  const hd = isWallOpeningSpec(spec) ? Math.min(d, WALL_THICKNESS) * 0.45 : d / 2;
   return { cx: f.x, cz: f.z, hw: w / 2, hd, angle: (f.rotation * Math.PI) / 180 };
 }
 
@@ -533,9 +549,10 @@ export function nearestWall(x: number, z: number, walls: Wall[], offset: Point):
 }
 
 /** 바닥 기준 수직 범위 [하단, 상단] */
-export function verticalRange(spec: FurnitureSpec): [number, number] {
+export function verticalRange(spec: FurnitureSpec, f?: Pick<PlacedFurniture, 'height'>): [number, number] {
   const bottom = spec.wallMounted ? spec.elevation ?? 0 : 0;
-  return [bottom, bottom + spec.size[2]];
+  const h = isWallOpeningSpec(spec) ? spec.size[2] : (f?.height ?? spec.size[2]);
+  return [bottom, bottom + h];
 }
 
 /**
@@ -567,6 +584,67 @@ export function snapToWallLine(
   };
 }
 
+/**
+ * 벽 표면 부착형 스냅(벽 콘센트 등): 가장 가까운 벽의 내측 표면에 밀착시키고
+ * 앞면(+Z)이 실내(외벽) 또는 커서 방향(내부 칸막이벽/열린 도면)을 향하도록 회전한다.
+ */
+export function snapToWallSurface(
+  f: PlacedFurniture,
+  spec: FurnitureSpec,
+  walls: Wall[],
+  offset: Point,
+): { x: number; z: number; rotation: number; wallId?: string } {
+  const hit = nearestWall(f.x, f.z, walls, offset);
+  if (!hit) return { x: f.x, z: f.z, rotation: f.rotation };
+
+  const [effW, effD] = getEffectiveSize(f, spec);
+  const halfW = effW / 2;
+  const lo = halfW + WALL_THICKNESS / 2;
+  const hi = hit.len - halfW - WALL_THICKNESS / 2;
+  const rawAlong = (f.x - hit.a.x) * hit.ux + (f.z - hit.a.y) * hit.uz;
+  const along = lo <= hi ? Math.max(lo, Math.min(hi, rawAlong)) : hit.len / 2;
+
+  const px = hit.a.x + hit.ux * along;
+  const pz = hit.a.y + hit.uz * along;
+
+  const n = { x: -hit.uz, z: hit.ux };
+  const roomPolys = findClosedPolygons(walls).map((poly) =>
+    poly.map((p) => ({ x: p.x - offset.x, y: p.y - offset.y })),
+  );
+  const probePlus = { x: px + n.x * 0.18, y: pz + n.z * 0.18 };
+  const probeMinus = { x: px - n.x * 0.18, y: pz - n.z * 0.18 };
+  const inPlus = roomPolys.some((poly) => pointInPolygon(probePlus, poly));
+  const inMinus = roomPolys.some((poly) => pointInPolygon(probeMinus, poly));
+
+  let faceNormal: { x: number; z: number };
+  if (inPlus && !inMinus) {
+    faceNormal = { x: n.x, z: n.z };
+  } else if (!inPlus && inMinus) {
+    faceNormal = { x: -n.x, z: -n.z };
+  } else {
+    const signed = (f.x - px) * n.x + (f.z - pz) * n.z;
+    if (Math.abs(signed) > 1e-4) {
+      faceNormal = signed > 0 ? { x: n.x, z: n.z } : { x: -n.x, z: -n.z };
+    } else {
+      faceNormal = wallInwardNormal(px, pz, hit, walls, offset, roomPolys);
+    }
+  }
+
+  const offsetDist = WALL_THICKNESS / 2 + effD / 2;
+  let rotation = (Math.atan2(faceNormal.x, faceNormal.z) * 180) / Math.PI;
+  rotation = Math.round(rotation * 100) / 100;
+  while (rotation <= -180) rotation += 360;
+  while (rotation > 180) rotation -= 360;
+  if (Object.is(rotation, -0)) rotation = 0;
+
+  return {
+    x: px + faceNormal.x * offsetDist,
+    z: pz + faceNormal.z * offsetDist,
+    rotation,
+    wallId: hit.id,
+  };
+}
+
 /** 벽 개구부 (벽 a점 기준 거리, 바닥 기준 높이, m) */
 export interface WallOpening {
   start: number;
@@ -575,7 +653,7 @@ export interface WallOpening {
   top: number;
 }
 
-/** 벽 부착형 가구가 각 벽에 뚫는 개구부 목록 */
+/** 벽 부착형 개구부(창문·문)가 각 벽에 뚫는 개구부 목록 */
 export function computeWallOpenings(
   items: PlacedFurniture[],
   specOf: (id: string) => FurnitureSpec | undefined,
@@ -585,11 +663,11 @@ export function computeWallOpenings(
   const res: Record<string, WallOpening[]> = {};
   for (const f of items) {
     const s = specOf(f.specId);
-    if (!s?.wallMounted) continue;
+    if (!isWallOpeningSpec(s)) continue;
     const hit = nearestWall(f.x, f.z, walls, offset);
     if (!hit || hit.d > WALL_THICKNESS) continue; // 벽 위에 있지 않음
-    const [effW] = getEffectiveSize(f, s);
-    const [bottom, top] = verticalRange(s);
+    const [effW] = getEffectiveSize(f, s!);
+    const [bottom, top] = verticalRange(s!, f);
     (res[hit.id] ??= []).push({ start: hit.along - effW / 2, end: hit.along + effW / 2, bottom, top });
   }
   return res;
@@ -666,8 +744,9 @@ export function computeCollisions(
     const s = specs[i];
     return s ? furnitureOBB(f, s) : null;
   });
-  const ranges = specs.map((s) => (s ? verticalRange(s) : null));
+  const ranges = items.map((f, i) => (specs[i] ? verticalRange(specs[i]!, f) : null));
   const wallObbs = walls.map((w) => ({ id: w.id, obb: wallOBB(w, offset) }));
+  const openingsByWall = computeWallOpenings(items, specOf, walls, offset);
   for (let i = 0; i < items.length; i++) {
     const oi = obbs[i];
     const ri = ranges[i];
@@ -676,23 +755,41 @@ export function computeCollisions(
       const oj = obbs[j];
       const rj = ranges[j];
       if (!oj || !rj) continue;
-      // 벽에 매립된 창문(wallMounted)과 실내 바닥 가구(!wallMounted)는 서로 다른 레이어(벽 내부 vs 실내 공간)이므로 간섭에서 제외
+      // 벽 부착형(창문·문·벽 콘센트)과 실내 바닥 가구(!wallMounted)는 서로 다른 레이어이므로 간섭에서 제외
       if (Boolean(specs[i]?.wallMounted) !== Boolean(specs[j]?.wallMounted)) continue;
       // 높이 구간이 겹칠 때만 간섭
       if (ri[0] >= rj[1] - 0.005 || rj[0] >= ri[1] - 0.005) continue;
       if (obbOverlap(oi, oj)) { res.add(items[i].id); res.add(items[j].id); }
     }
-    if (specs[i]!.wallMounted) {
-      // 창문은 부착된 벽에 개구부를 뚫으므로 그 벽과는 간섭 아님. 다른 벽(모서리/T자)과만 검사
+    const si = specs[i]!;
+    if (si.wallMounted) {
+      // 벽 부착형은 부착된 벽과는 간섭 아님. 다른 벽(모서리/T자) 및 벽면 부착물의 개구부 침범만 검사
       const host = nearestWall(items[i].x, items[i].z, walls, offset);
-      if (!host || host.d > WALL_THICKNESS) { res.add(items[i].id); continue; }
+      const [effW, effD] = getEffectiveSize(items[i], si);
+      const surface = isWallSurfaceSpec(si);
+      const maxHostDist = surface ? WALL_THICKNESS / 2 + effD / 2 + 0.04 : WALL_THICKNESS;
+      if (!host || host.d > maxHostDist) { res.add(items[i].id); continue; }
       if (wallObbs.some((wo) => wo.id !== host.id && obbOverlap(oi, wo.obb, 0.01))) res.add(items[i].id);
+      if (surface) {
+        const hostOpenings = openingsByWall[host.id];
+        if (hostOpenings?.length) {
+          const s0 = host.along - effW / 2;
+          const s1 = host.along + effW / 2;
+          const overlapsOpening = hostOpenings.some(
+            (op) =>
+              s0 < op.end - 0.005 &&
+              op.start < s1 - 0.005 &&
+              ri[0] < op.top - 0.005 &&
+              op.bottom < ri[1] - 0.005,
+          );
+          if (overlapsOpening) res.add(items[i].id);
+        }
+      }
     } else if (wallObbs.some((wo) => obbOverlap(oi, wo.obb, 0.01))) {
       res.add(items[i].id);
     }
 
-    const si = specs[i];
-    if (si && isSwingDoor(si)) {
+    if (isSwingDoor(si)) {
       const zone = doorSwingZone(items[i], si, walls, offset);
       if (zone) {
         for (let j = 0; j < items.length; j++) {

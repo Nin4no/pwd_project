@@ -1,4 +1,4 @@
-import type { PlacedFurniture, Room } from '../../domain/types';
+import type { PlacedFurniture, Room, RoomFacing } from '../../domain/types';
 import type { FurniturePatch } from '../../domain/room';
 import type { CameraMode } from '../../engine/webgl/camera';
 import type { LightingPreset } from '../../engine/webgl/lighting';
@@ -89,6 +89,7 @@ export interface StudioActions {
   /** AI 배치 추천 결과 적용 (keepExisting=false면 바닥 가구 교체) */
   applyLayout(furniture: PlacedFurniture[], keepExisting: boolean): void;
   setTitle(title: string): void;
+  setFacing(facing: RoomFacing): void;
 
   select(id: string | null): void;
   setMode(mode: StudioMode): void;

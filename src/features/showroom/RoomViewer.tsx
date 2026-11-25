@@ -1,5 +1,6 @@
-import { useMemo, useState, type MutableRefObject } from 'react';
+import { useMemo, useRef, useState, type MutableRefObject } from 'react';
 import RoomCanvas, { type CameraMode } from '../studio/build/RoomCanvas';
+import CompassHud from '../studio/build/CompassHud';
 import type { SceneApi } from '../studio/build/RoomCanvas.types';
 import { Segmented } from '../../design/components';
 import type { Room } from '../../domain/types';
@@ -28,6 +29,7 @@ export function RoomViewer3D({
 }: RoomViewer3DProps) {
   const [mode, setMode] = useState<CameraMode>('orbit');
   const [locked, setLocked] = useState(false);
+  const azimuthSinkRef = useRef<((azimuthRad: number) => void) | null>(null);
   return (
     <div className={s.viewer}>
       <RoomCanvas
@@ -37,8 +39,10 @@ export function RoomViewer3D({
         zoomEnabled={zoomEnabled}
         onWalkLockChange={setLocked}
         onRotate={onRotate}
+        onAzimuthChange={(az) => azimuthSinkRef.current?.(az)}
         apiRef={apiRef}
       />
+      <CompassHud facing={room.facing} variant="viewer" azimuthSinkRef={azimuthSinkRef} />
       {showControls && mode === 'walk' && !locked ? (
         <div className={s.walkHint}>
           <p>

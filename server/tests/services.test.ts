@@ -177,6 +177,74 @@ describe("rooms.service", () => {
       }),
     );
   });
+
+  test("upsertRoom validates facing, passes p_facing, and falls back to 9-arg RPC before SQL migration", async () => {
+    for (const badFacing of ["XX", "south", "north", 123]) {
+      await expect(
+        rooms.upsertRoom(userId, "room-101", { facing: badFacing }),
+      ).rejects.toMatchObject({ statusCode: 400 });
+    }
+
+    // 10-arg happy path with explicit facing
+    client.rpc.mockResolvedValueOnce({
+      data: [{ ...roomRow, facing: "NW" }],
+      error: null,
+    });
+    const saved = await rooms.upsertRoom(userId, "room-101", {
+      title: "북서향 방",
+      facing: "NW",
+    });
+    expect(client.rpc).toHaveBeenCalledWith(
+      "upsert_room",
+      expect.objectContaining({ p_facing: "NW" }),
+    );
+    expect(saved.facing).toBe("NW");
+
+    // Pre-migration fallback for PGRST202 / 42883 / 42703
+    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      for (const err of [
+        { code: "PGRST202", message: "Could not find the function public.upsert_room(p_facing)" },
+        { code: "42883", message: "function public.upsert_room does not exist" },
+        { code: "42703", message: 'column "facing" of relation "rooms" does not exist' },
+      ]) {
+        client.rpc.mockReset();
+        client.rpc
+          .mockResolvedValueOnce({ data: null, error: err })
+          .mockResolvedValueOnce({ data: [{ ...roomRow, title: "레거시 저장" }], error: null });
+
+        const res = await rooms.upsertRoom(userId, "room-101", {
+          title: "레거시 저장",
+          facing: "E",
+        });
+        expect(res.title).toBe("레거시 저장");
+        expect(res.facing).toBeUndefined();
+        expect(client.rpc).toHaveBeenCalledTimes(2);
+        const secondCallArgs = client.rpc.mock.calls[1][1] as Record<string, unknown>;
+        expect("p_facing" in secondCallArgs).toBe(false);
+      }
+
+      // Auth / check-constraint errors MUST NOT trigger 9-arg fallback
+      client.rpc.mockReset();
+      client.rpc.mockResolvedValueOnce({
+        data: null,
+        error: { code: "42501", message: "ROOM_FORBIDDEN" },
+      });
+      await expect(
+        rooms.upsertRoom(userId, "room-101", { title: "Denied", facing: "E" }),
+      ).rejects.toMatchObject({ statusCode: 403 });
+      expect(client.rpc).toHaveBeenCalledTimes(1);
+    } finally {
+      warnSpy.mockRestore();
+    }
+  });
+
+  test("rowToRoom handles rows with valid, missing, null, or invalid facing", () => {
+    expect(rooms.rowToRoom({ ...roomRow, facing: "SE" }).facing).toBe("SE");
+    expect(rooms.rowToRoom({ ...roomRow, facing: null }).facing).toBeUndefined();
+    expect(rooms.rowToRoom({ ...roomRow }).facing).toBeUndefined();
+    expect(rooms.rowToRoom({ ...roomRow, facing: "INVALID" }).facing).toBeUndefined();
+  });
 });
 
 describe("showroom.service", () => {
@@ -293,6 +361,28 @@ describe("showroom.service", () => {
         room: { id: "r1", walls: ["bad"] },
       }),
     ).rejects.toMatchObject({ statusCode: 400 });
+
+    await expect(
+      showroom.createShowroomPost(userId, "테스터", {
+        id: "post-bad-facing",
+        room: { id: "r1", facing: "BAD" },
+      }),
+    ).rejects.toMatchObject({ statusCode: 400 });
+
+    query.single.mockResolvedValueOnce({
+      data: { ...postRow, room_snapshot: { ...(postRow.room_snapshot as any), facing: "NE" } },
+      error: null,
+    });
+    const postWithFacing = await showroom.createShowroomPost(userId, "테스터", {
+      id: "post-facing-ok",
+      room: { id: "r1", facing: "NE" },
+    });
+    expect(query.insert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        room_snapshot: expect.objectContaining({ facing: "NE" }),
+      }),
+    );
+    expect(postWithFacing.room.facing).toBe("NE");
 
     query.limit.mockResolvedValueOnce({ data: [], error: null });
     await showroom.getShowroomPosts(500);

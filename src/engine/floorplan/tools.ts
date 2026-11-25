@@ -1,7 +1,7 @@
 import type { PlacedFurniture, Point, Wall } from '../../domain/types';
 import type { CatalogReader } from '../../domain/catalog';
 import { newFurnitureId, newWallId } from '../../domain/ids';
-import { WALL_THICKNESS, nearestWall as nearestWallHit, round, samePoint, snapToWallLine } from '../geometry';
+import { WALL_THICKNESS, nearestWall as nearestWallHit, round, samePoint, snapToWallLine, wallsBounds } from '../geometry';
 import type { PlanDocument, PlanHover, PlanTool } from './types';
 import { ZERO_OFFSET, VERTEX_SNAP_PX, findAxisAlignedRectAtVertex, nearestDoor, nearestVertex, nearestWallId, snapPoint, uniqueVertices, type RectCornerInfo } from './hit';
 
@@ -10,6 +10,8 @@ import { ZERO_OFFSET, VERTEX_SNAP_PX, findAxisAlignedRectAtVertex, nearestDoor, 
  * 캔버스·DOM·히스토리를 모르며, 테스트는 이 모듈만으로 가능하다.
  */
 export const MIN_RECT = 0.3;
+export const MIN_PLAN_DIM = MIN_RECT;
+export const MAX_PLAN_DIM = 50;
 const DRAG_THRESHOLD_PX = 4;
 
 export type Drag =
@@ -121,6 +123,57 @@ export function addRect(doc: PlanDocument, a: Point, b: Point): PlanDocument | n
   const x0 = Math.min(a.x, b.x), y0 = Math.min(a.y, b.y);
   const pts: Point[] = [{ x: x0, y: y0 }, { x: x0 + w, y: y0 }, { x: x0 + w, y: y0 + h }, { x: x0, y: y0 + h }];
   return { ...doc, walls: [...doc.walls, ...pts.map((p, i) => ({ id: newWallId(), a: p, b: pts[(i + 1) % 4] }))] };
+}
+
+/**
+ * 전체 도면 벽을 바운딩 중심 기준으로 스케일해 가로·세로를 0.01m 단위로 정확히 맞춘다.
+ * - `roomOffset(nextWalls)` 불변 → 3D 가구 위치가 튀지 않음
+ * - 문은 스케일 전 호스트 벽의 상대 비율 t를 유지해 재투영·스냅 (door.width 불변)
+ */
+export function resizeFloorplanDimensions(
+  doc: PlanDocument,
+  target: { width?: number; depth?: number },
+  catalog?: CatalogReader,
+): PlanDocument {
+  const b = wallsBounds(doc.walls);
+  if (!b) return doc;
+  const clampDim = (v: number) => Math.round(Math.min(MAX_PLAN_DIM, Math.max(MIN_PLAN_DIM, v)) * 100) / 100;
+  const nextW = target.width !== undefined && Number.isFinite(target.width) ? clampDim(target.width) : null;
+  const nextD = target.depth !== undefined && Number.isFinite(target.depth) ? clampDim(target.depth) : null;
+  const sx = nextW !== null && b.width >= 1e-4 ? nextW / b.width : 1;
+  const sy = nextD !== null && b.depth >= 1e-4 ? nextD / b.depth : 1;
+  if (Math.abs(sx - 1) < 1e-9 && Math.abs(sy - 1) < 1e-9) return doc;
+
+  const scalePt = (p: Point): Point => ({
+    x: sx === 1 ? p.x : +(b.cx + (p.x - b.cx) * sx).toFixed(4) || 0,
+    y: sy === 1 ? p.y : +(b.cy + (p.y - b.cy) * sy).toFixed(4) || 0,
+  });
+
+  const doorBindings = doc.doors.map((d) => {
+    const hit = nearestWallHit(d.x, d.z, doc.walls, ZERO_OFFSET);
+    if (!hit || hit.d > WALL_THICKNESS * 1.5 || hit.len < 1e-6) return null;
+    return { wallId: hit.id, t: Math.max(0, Math.min(1, hit.along / hit.len)) };
+  });
+
+  const walls = doc.walls.map((w) => ({ ...w, a: scalePt(w.a), b: scalePt(w.b) }));
+  const wallById = new Map(walls.map((w) => [w.id, w]));
+
+  const doors = doc.doors.map((d, i) => {
+    const bind = doorBindings[i];
+    const hostWall = bind ? wallById.get(bind.wallId) : undefined;
+    const projected = hostWall
+      ? {
+          x: +(hostWall.a.x + (hostWall.b.x - hostWall.a.x) * bind!.t).toFixed(4) || 0,
+          y: +(hostWall.a.y + (hostWall.b.y - hostWall.a.y) * bind!.t).toFixed(4) || 0,
+        }
+      : scalePt({ x: d.x, y: d.z });
+    const spec = catalog?.get(d.specId);
+    if (!spec) return { ...d, x: projected.x, z: projected.y };
+    const s = snapToWallLine({ ...d, x: projected.x, z: projected.y }, spec, hostWall ? [hostWall] : walls, ZERO_OFFSET);
+    return { ...d, x: s.x, z: s.z, rotation: s.rotation };
+  });
+
+  return { ...doc, walls, doors };
 }
 
 /* ───── 포인터 ───── */

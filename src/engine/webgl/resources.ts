@@ -249,6 +249,7 @@ uniform vec3 u_skyColor;
 uniform vec3 u_groundColor;
 uniform vec3 u_keyDir;
 uniform vec3 u_keyColor;
+uniform vec3 u_fillDir;
 uniform vec3 u_fillColor;
 
 out vec4 fragColor;
@@ -314,7 +315,7 @@ void main() {
   float ndotl1 = max(dot(n, light1Dir), 0.0);
 
   // Cool fill light from opposite side
-  vec3 light2Dir = normalize(vec3(-0.82, 0.45, -0.55));
+  vec3 light2Dir = normalize(u_fillDir);
   float ndotl2 = max(dot(n, light2Dir), 0.0);
 
   vec3 directIrradiance = u_keyColor * ndotl1 + u_fillColor * ndotl2;

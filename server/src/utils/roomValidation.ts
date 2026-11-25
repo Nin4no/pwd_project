@@ -1,4 +1,18 @@
+import type { RoomFacing } from "../types/domain.types";
 import HttpError from "./httpError";
+
+export const VALID_ROOM_FACINGS = [
+  "N",
+  "NE",
+  "E",
+  "SE",
+  "S",
+  "SW",
+  "W",
+  "NW",
+] as const;
+
+const VALID_ROOM_FACING_SET = new Set<string>(VALID_ROOM_FACINGS);
 
 export const MAX_WALLS = 200;
 export const MAX_FURNITURE = 300;
@@ -71,12 +85,24 @@ export function validateRemixedFrom(value: unknown): string | null {
   return trimmed;
 }
 
+export function validateRoomFacing(value: unknown): RoomFacing | undefined {
+  if (value === undefined || value === null || value === "") return undefined;
+  if (typeof value !== "string" || !VALID_ROOM_FACING_SET.has(value)) {
+    throw new HttpError(
+      400,
+      "facing must be one of N, NE, E, SE, S, SW, W, NW.",
+    );
+  }
+  return value as RoomFacing;
+}
+
 export function validateRoomFields(input: Record<string, unknown>): {
   walls: Record<string, unknown>[];
   furniture: Record<string, unknown>[];
   customSpecs: Record<string, unknown>[];
   thumbnail: string | null;
   remixedFrom: string | null;
+  facing: RoomFacing | undefined;
 } {
   return {
     walls: validateObjectArray(input.walls, "walls", MAX_WALLS),
@@ -84,6 +110,7 @@ export function validateRoomFields(input: Record<string, unknown>): {
     customSpecs: validateObjectArray(input.customSpecs, "customSpecs", MAX_CUSTOM_SPECS),
     thumbnail: validateThumbnail(input.thumbnail),
     remixedFrom: validateRemixedFrom(input.remixedFrom),
+    facing: validateRoomFacing(input.facing),
   };
 }
 
@@ -92,7 +119,7 @@ export function validateShowroomRoomSnapshot(room: unknown): Record<string, unkn
     throw new HttpError(400, "room 데이터가 필요합니다.");
   }
   const validated = validateRoomFields(room);
-  return {
+  const snapshot: Record<string, unknown> = {
     ...room,
     ...(room.walls !== undefined ? { walls: validated.walls } : {}),
     ...(room.furniture !== undefined ? { furniture: validated.furniture } : {}),
@@ -100,4 +127,10 @@ export function validateShowroomRoomSnapshot(room: unknown): Record<string, unkn
     ...(room.thumbnail !== undefined ? { thumbnail: validated.thumbnail } : {}),
     ...(room.remixedFrom !== undefined ? { remixedFrom: validated.remixedFrom } : {}),
   };
+  if (validated.facing !== undefined) {
+    snapshot.facing = validated.facing;
+  } else {
+    delete snapshot.facing;
+  }
+  return snapshot;
 }

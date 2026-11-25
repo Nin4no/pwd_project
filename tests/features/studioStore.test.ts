@@ -233,6 +233,37 @@ test('save: 초안 → 저장소 저장, draft 비움, roomId 전환, dirty=fals
   assert.equal(s().dirty, true);
 });
 
+test('setFacing: 히스토리(undo/redo)·dirty·초안 자동저장과 동일 방향 무시', async () => {
+  const { repo, store, s } = make();
+  store.getState().newDraft(room('d-facing'));
+  assert.equal(s().room?.facing, undefined);
+
+  // 기본 S와 동일한 방향 설정은 히스토리를 추가하지 않는다
+  store.getState().setFacing('S');
+  assert.equal(s().history.past.length, 0);
+
+  store.getState().setFacing('E');
+  assert.equal(s().room?.facing, 'E');
+  assert.equal(s().history.past.length, 1);
+  assert.equal(s().dirty, true);
+  assert.equal(repo.draftValue()?.facing, 'E');
+
+  store.getState().setFacing('NW');
+  assert.equal(s().room?.facing, 'NW');
+  assert.equal(s().history.past.length, 2);
+
+  store.getState().undo();
+  assert.equal(s().room?.facing, 'E');
+  assert.equal(repo.draftValue()?.facing, 'E');
+
+  store.getState().redo();
+  assert.equal(s().room?.facing, 'NW');
+
+  const saved = await store.getState().save();
+  assert.equal(saved?.facing, 'NW');
+  assert.equal(repo.rooms.get('d-facing')?.facing, 'NW');
+});
+
 test('setMode·setCamera·setPanel·reset', async () => {
   const { store, s } = make([room()]);
   await store.getState().load('r1');

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react';
 import RoomCanvas from './RoomCanvas';
+import CompassHud from './CompassHud';
 import type { CatalogReader } from '../../../domain/catalog';
 import type { Room } from '../../../domain/types';
 import { useStudio, useStudioStoreApi } from '../context';
@@ -24,7 +25,9 @@ export default function SceneView({ catalog, animate = false, editable = true }:
   const collisions = useStudio((s) => s.collisions);
   const cameraMode = useStudio((s) => s.cameraMode);
   const lightingPreset = useStudio((s) => s.lightingPreset);
+  const inspectorOpen = useStudio((s) => s.panels.inspector);
   const apiRef = useRef<SceneApi | null>(null);
+  const azimuthSinkRef = useRef<((azimuthRad: number) => void) | null>(null);
   const scoped = useMemo(() => (room ? catalog.scoped(room) : catalog), [catalog, room?.customSpecs]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -35,20 +38,29 @@ export default function SceneView({ catalog, animate = false, editable = true }:
   if (!room) return null;
   const a = store.getState();
   return (
-    <RoomCanvas
-      room={room}
-      editable={editable}
-      selectedId={selectedId}
-      collisions={collisions}
-      cameraMode={cameraMode}
-      lightingPreset={lightingPreset}
-      animate={animate}
-      apiRef={apiRef}
-      catalog={scoped}
-      onSelect={a.select}
-      onMove={(id, x, z, opts) => a.patch(id, { x, z }, { live: true, skipWallSnap: opts?.skipWallSnap })}
-      onDragEnd={() => a.commitLive()}
-      onWalkLockChange={a.setWalkLocked}
-    />
+    <>
+      <RoomCanvas
+        room={room}
+        editable={editable}
+        selectedId={selectedId}
+        collisions={collisions}
+        cameraMode={cameraMode}
+        lightingPreset={lightingPreset}
+        animate={animate}
+        apiRef={apiRef}
+        catalog={scoped}
+        onSelect={a.select}
+        onMove={(id, x, z, opts) => a.patch(id, { x, z }, { live: true, skipWallSnap: opts?.skipWallSnap })}
+        onDragEnd={() => a.commitLive()}
+        onWalkLockChange={a.setWalkLocked}
+        onAzimuthChange={(az) => azimuthSinkRef.current?.(az)}
+      />
+      <CompassHud
+        facing={room.facing}
+        onChange={editable ? a.setFacing : undefined}
+        inspectorOpen={inspectorOpen}
+        azimuthSinkRef={azimuthSinkRef}
+      />
+    </>
   );
 }

@@ -35,6 +35,8 @@ export interface RoomCanvasProps {
   onWalkLockChange?: (locked: boolean) => void;
   /** 사용자가 3D 카메라를 직접 회전(드래그)할 때 호출 */
   onRotate?: () => void;
+  /** 카메라 수평 시선 방위각(rad)이 변경될 때 호출 (매 프레임 React 리렌더 없이 ref 싱크용) */
+  onAzimuthChange?: (azimuthRad: number) => void;
   /** 방 범위 카탈로그(AI 가구 포함). 없으면 전역 카탈로그 */
   catalog?: CatalogReader;
 }

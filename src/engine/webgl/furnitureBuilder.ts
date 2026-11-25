@@ -339,7 +339,7 @@ export function buildFurnitureParts(spec: FurnitureSpec): FurniturePartData[] {
     }
 
     case 'window': {
-      const y0 = spec.elevation ?? 0;
+      const hasSill = (spec.elevation ?? 0) > 0.1;
       const ft = 0.05;
       const st = 0.035;
       const frame = '#f8fafc';
@@ -353,22 +353,22 @@ export function buildFurnitureParts(spec: FurnitureSpec): FurniturePartData[] {
           ]
         : [{ x: 0, z: 0 }];
 
-      // Outer frame
-      col.box([w, ft, d], [0, y0 + ft / 2, 0], frame, 0.4);
-      col.box([w, ft, d], [0, y0 + h - ft / 2, 0], frame, 0.4);
-      col.box([ft, h - ft * 2, d], [-w / 2 + ft / 2, y0 + h / 2, 0], frame, 0.4);
-      col.box([ft, h - ft * 2, d], [w / 2 - ft / 2, y0 + h / 2, 0], frame, 0.4);
+      // Outer frame (local [0..h]; elevation is applied once via composeTRS)
+      col.box([w, ft, d], [0, ft / 2, 0], frame, 0.4);
+      col.box([w, ft, d], [0, h - ft / 2, 0], frame, 0.4);
+      col.box([ft, h - ft * 2, d], [-w / 2 + ft / 2, h / 2, 0], frame, 0.4);
+      col.box([ft, h - ft * 2, d], [w / 2 - ft / 2, h / 2, 0], frame, 0.4);
 
       // Sill
-      if (y0 > 0.1) {
-        col.box([w + 0.04, 0.025, d], [0, y0 - 0.0125, 0], frame, 0.5);
+      if (hasSill) {
+        col.box([w + 0.04, 0.025, d], [0, -0.0125, 0], frame, 0.5);
       }
 
       // Sashes
       for (const s of sashes) {
-        const cy = y0 + ft + sashH / 2;
-        col.box([sashW, st, 0.04], [s.x, y0 + ft + sashH - st / 2, s.z], frame, 0.4);
-        col.box([sashW, st, 0.04], [s.x, y0 + ft + st / 2, s.z], frame, 0.4);
+        const cy = ft + sashH / 2;
+        col.box([sashW, st, 0.04], [s.x, ft + sashH - st / 2, s.z], frame, 0.4);
+        col.box([sashW, st, 0.04], [s.x, ft + st / 2, s.z], frame, 0.4);
         col.box([st, sashH - st * 2, 0.04], [s.x - sashW / 2 + st / 2, cy, s.z], frame, 0.4);
         col.box([st, sashH - st * 2, 0.04], [s.x + sashW / 2 - st / 2, cy, s.z], frame, 0.4);
 

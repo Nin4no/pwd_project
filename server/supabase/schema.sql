@@ -23,11 +23,17 @@ create table if not exists public.rooms (
   wall_height numeric(3, 2) not null default 2.40,
   thumbnail text,
   remixed_from varchar(64),
+  facing varchar(4) not null default 'S',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint dyr_room_title check (length(btrim(title)) between 1 and 100),
-  constraint dyr_room_wall_height check (wall_height between 1.50 and 6.00)
+  constraint dyr_room_wall_height check (wall_height between 1.50 and 6.00),
+  constraint dyr_room_facing check (facing in ('N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'))
 );
+
+alter table public.rooms add column if not exists facing varchar(4) not null default 'S';
+alter table public.rooms drop constraint if exists dyr_room_facing;
+alter table public.rooms add constraint dyr_room_facing check (facing in ('N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'));
 
 create table if not exists public.showroom_posts (
   id varchar(64) primary key,
@@ -110,6 +116,8 @@ select
 from auth.users on conflict(id) do nothing;
 
 -- Ownership is checked in the same statement as the insert/update to avoid TOCTOU.
+drop function if exists public.upsert_room(varchar, uuid, varchar, jsonb, jsonb, jsonb, numeric, text, varchar);
+
 create or replace function public.upsert_room(
   p_id varchar,
   p_owner_id uuid,
@@ -119,12 +127,13 @@ create or replace function public.upsert_room(
   p_custom_specs jsonb,
   p_wall_height numeric,
   p_thumbnail text,
-  p_remixed_from varchar
+  p_remixed_from varchar,
+  p_facing varchar default 'S'
 ) returns setof public.rooms language plpgsql security invoker set search_path='' as $$
 begin
   return query
-    insert into public.rooms(id, owner_id, title, walls, furniture, custom_specs, wall_height, thumbnail, remixed_from)
-    values (p_id, p_owner_id, p_title, p_walls, p_furniture, p_custom_specs, p_wall_height, p_thumbnail, p_remixed_from)
+    insert into public.rooms(id, owner_id, title, walls, furniture, custom_specs, wall_height, thumbnail, remixed_from, facing)
+    values (p_id, p_owner_id, p_title, p_walls, p_furniture, p_custom_specs, p_wall_height, p_thumbnail, p_remixed_from, coalesce(nullif(btrim(p_facing), ''), 'S'))
     on conflict (id) do update set
       title = excluded.title,
       walls = excluded.walls,
@@ -133,6 +142,7 @@ begin
       wall_height = excluded.wall_height,
       thumbnail = excluded.thumbnail,
       remixed_from = excluded.remixed_from,
+      facing = excluded.facing,
       updated_at = now()
     where public.rooms.owner_id = p_owner_id
     returning *;
@@ -180,6 +190,7 @@ declare
   v_post public.showroom_posts;
   v_snapshot jsonb;
   v_room_id varchar(64);
+  v_facing varchar(4);
 begin
   select * into v_post from public.showroom_posts where id = p_post_id for update;
   if not found then
@@ -188,8 +199,13 @@ begin
 
   v_snapshot := v_post.room_snapshot;
   v_room_id := 'room_' || gen_random_uuid()::text;
+  v_facing := case
+    when (v_snapshot->>'facing') in ('N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW')
+      then v_snapshot->>'facing'
+    else 'S'
+  end;
   return query
-    insert into public.rooms(id, owner_id, title, walls, furniture, custom_specs, wall_height, thumbnail, remixed_from)
+    insert into public.rooms(id, owner_id, title, walls, furniture, custom_specs, wall_height, thumbnail, remixed_from, facing)
     values (
       v_room_id,
       p_user_id,
@@ -199,7 +215,8 @@ begin
       coalesce(v_snapshot->'customSpecs', '[]'::jsonb),
       coalesce(nullif(v_snapshot->>'wallHeight', '')::numeric, 2.40),
       v_snapshot->>'thumbnail',
-      p_post_id
+      p_post_id,
+      v_facing
     )
     returning *;
 
@@ -231,14 +248,14 @@ grant select, insert, update, delete on table public.profiles, public.rooms, pub
 revoke all on function
   public.dyr_touch_updated_at(),
   public.dyr_handle_new_user(),
-  public.upsert_room(varchar, uuid, varchar, jsonb, jsonb, jsonb, numeric, text, varchar),
+  public.upsert_room(varchar, uuid, varchar, jsonb, jsonb, jsonb, numeric, text, varchar, varchar),
   public.toggle_showroom_like(varchar, uuid),
   public.remix_showroom_post(varchar, uuid),
   public.deactivate_account(uuid)
 from public, anon, authenticated;
 
 grant execute on function
-  public.upsert_room(varchar, uuid, varchar, jsonb, jsonb, jsonb, numeric, text, varchar),
+  public.upsert_room(varchar, uuid, varchar, jsonb, jsonb, jsonb, numeric, text, varchar, varchar),
   public.toggle_showroom_like(varchar, uuid),
   public.remix_showroom_post(varchar, uuid),
   public.deactivate_account(uuid)

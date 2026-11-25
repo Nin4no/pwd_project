@@ -125,6 +125,12 @@
   font-size: var(--fs-caption);
   font-weight: 600;
 }
+.wallAutoNote {
+  margin: 0;
+  font-size: var(--fs-caption);
+  line-height: 1.45;
+  color: var(--text-sub);
+}
 .range {
   -webkit-appearance: none;
   appearance: none;

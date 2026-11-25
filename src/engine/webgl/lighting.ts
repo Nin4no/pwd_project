@@ -1,3 +1,5 @@
+import { rotateXZByFacing, type RoomFacing } from '../../domain/orientation';
+
 export type LightingPreset = 'daylight' | 'afternoon' | 'night';
 
 export interface LightingPresetConfig {
@@ -8,6 +10,10 @@ export interface LightingPresetConfig {
   keyDir: [number, number, number];
   keyColor: [number, number, number];
   fillColor: [number, number, number];
+}
+
+export interface ResolvedLighting extends LightingPresetConfig {
+  fillDir: [number, number, number];
 }
 
 export const LIGHTING_PRESETS: Record<LightingPreset, LightingPresetConfig> = {
@@ -25,7 +31,7 @@ export const LIGHTING_PRESETS: Record<LightingPreset, LightingPresetConfig> = {
     clearColor: [0.976, 0.952, 0.918],
     sky: [0.46, 0.42, 0.36],
     ground: [0.25, 0.21, 0.17],
-    keyDir: [0.95, 0.68, 0.75],
+    keyDir: [-0.85, 0.64, 0.72],
     keyColor: [0.64, 0.50, 0.35],
     fillColor: [0.14, 0.15, 0.19],
   },
@@ -39,3 +45,28 @@ export const LIGHTING_PRESETS: Record<LightingPreset, LightingPresetConfig> = {
     fillColor: [0.10, 0.14, 0.24],
   },
 };
+
+const BASE_FILL_DIRS: Record<LightingPreset, [number, number, number]> = {
+  daylight: [-0.82, 0.45, -0.55],
+  afternoon: [0.82, 0.45, -0.55],
+  night: [-0.82, 0.45, -0.55],
+};
+
+/**
+ * 조명 프리셋과 방 향(facing)을 조합해 월드 좌표계 기준 태양광(keyDir)·보조광(fillDir)을 계산한다.
+ * 기본값 facing='S'(남향)일 때 daylight keyDir/fillDir은 기존 고정 조명과 완전히 동일하다.
+ */
+export function computeSunLighting(
+  preset: LightingPreset,
+  facing?: RoomFacing,
+): ResolvedLighting {
+  const base = LIGHTING_PRESETS[preset];
+  const baseFill = BASE_FILL_DIRS[preset];
+  const [kx, kz] = rotateXZByFacing(base.keyDir[0], base.keyDir[2], facing);
+  const [fx, fz] = rotateXZByFacing(baseFill[0], baseFill[2], facing);
+  return {
+    ...base,
+    keyDir: [kx, base.keyDir[1], kz],
+    fillDir: [fx, baseFill[1], fz],
+  };
+}

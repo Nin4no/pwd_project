@@ -1,6 +1,6 @@
 import type { PlacedFurniture, Point, Wall } from '../../domain/types';
 import type { CatalogReader } from '../../domain/catalog';
-import { WALL_THICKNESS, dist, extractRooms, findClosedPolygons, formatLength, getEffectiveSize, isSwingDoor, nearestWall as nearestWallHit, samePoint, wallInwardNormal, wallsBounds, type ExtractedRoom } from '../geometry';
+import { WALL_THICKNESS, dist, extractRooms, findClosedPolygons, formatLength, getEffectiveSize, isSwingDoor, isWallSurfaceSpec, nearestWall as nearestWallHit, samePoint, wallInwardNormal, wallsBounds, type ExtractedRoom } from '../geometry';
 import { ZERO_OFFSET, doorTangent, uniqueVertices } from './hit';
 import type { ToolState } from './tools';
 import type { PlanBackground, PlanTheme, PlanView } from './types';
@@ -98,10 +98,10 @@ export function renderPlan(input: RenderInput): void {
     ctx.fill('evenodd');
   }
 
-  // 바닥 가구 풋프린트 (읽기 전용 미리보기)
+  // 바닥 가구 풋프린트 (읽기 전용 미리보기 — 벽 표면 부착형은 벽 위에 별도 렌더링)
   for (const f of furniture) {
     const spec = catalog.get(f.specId);
-    if (!spec || spec.category === 'door') continue;
+    if (!spec || spec.category === 'door' || isWallSurfaceSpec(spec)) continue;
     const [w, d] = getEffectiveSize(f, spec);
     const s = toScreen({ x: f.x, y: f.z });
     const sw = w * view.scale, sh = d * view.scale;
@@ -158,6 +158,10 @@ export function renderPlan(input: RenderInput): void {
 
   const polys = findClosedPolygons(doc.walls);
   for (const d of doc.doors) drawDoor(ctx, d, doc.walls, catalog, view, theme, polys, tool === 'erase' && d.id === hover.eraseDoorId, (tool === 'door' || tool === 'select') && d.id === hover.doorId);
+  for (const f of furniture) {
+    const spec = catalog.get(f.specId);
+    if (spec && isWallSurfaceSpec(spec)) drawWallSurfaceSymbol(ctx, f, spec, view);
+  }
   for (const w of doc.walls) drawLabel(w.a, w.b, theme.dimension);
 
   // 면적 라벨
@@ -264,6 +268,44 @@ function drawDoor(
   ctx.lineWidth = hovered || erasing ? 2.5 : 2;
   ctx.fillRect(-sw / 2, -sh / 2, sw, sh);
   ctx.strokeRect(-sw / 2, -sh / 2, sw, sh);
+  ctx.restore();
+}
+
+function drawWallSurfaceSymbol(
+  ctx: CanvasRenderingContext2D,
+  f: PlacedFurniture,
+  spec: NonNullable<ReturnType<CatalogReader['get']>>,
+  view: PlanView,
+) {
+  const [w, d] = getEffectiveSize(f, spec);
+  const sx = f.x * view.scale + view.ox;
+  const sy = f.z * view.scale + view.oy;
+  const sw = Math.max(12, w * view.scale);
+  const sh = Math.max(6, d * view.scale);
+  const radius = Math.min(2.5, sh / 3);
+  const dotR = Math.max(1.2, Math.min(2, sh * 0.22));
+  const dotOffset = sw * 0.22;
+
+  ctx.save();
+  ctx.translate(sx, sy);
+  ctx.rotate(-((f.rotation || 0) * Math.PI) / 180);
+  ctx.fillStyle = '#ffffff';
+  ctx.strokeStyle = '#334155';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  if (typeof ctx.roundRect === 'function') {
+    ctx.roundRect(-sw / 2, -sh / 2, sw, sh, radius);
+  } else {
+    ctx.rect(-sw / 2, -sh / 2, sw, sh);
+  }
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.fillStyle = '#1e293b';
+  ctx.beginPath();
+  ctx.arc(-dotOffset, 0, dotR, 0, Math.PI * 2);
+  ctx.arc(dotOffset, 0, dotR, 0, Math.PI * 2);
+  ctx.fill();
   ctx.restore();
 }
 

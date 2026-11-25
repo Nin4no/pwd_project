@@ -1,3 +1,7 @@
+import type { RoomFacing } from './orientation';
+
+export type { RoomFacing };
+
 /** 2D 도면 좌표 (단위: m). 3D 변환 시 (x, y) → (x, 0, y) */
 export interface Point {
   x: number;
@@ -43,6 +47,9 @@ export type ProceduralPrimitive =
       openEnded?: boolean;
     } & PrimMat);
 
+/** 벽 부착 방식: opening=개구부(창문·문), surface=벽면 부착(콘센트 등) */
+export type WallMountMode = 'opening' | 'surface';
+
 export interface FurnitureSpec {
   id: string;
   name: string;
@@ -50,9 +57,11 @@ export interface FurnitureSpec {
   /** [가로(w), 깊이(d), 높이(h)] m */
   size: [number, number, number];
   color: string;
-  /** 벽 부착형 (창문): 항상 가장 가까운 벽 중심선에 붙고 벽에 개구부를 뚫음 */
+  /** 벽 부착형: opening은 벽 중심선에 매립·개구부 생성, surface는 벽 내측 표면에 밀착 */
   wallMounted?: boolean;
-  /** 바닥에서 하단까지 높이 (창대 높이, m) */
+  /** 벽 부착 모드 (미지정 시 window/door는 'opening', 그 외 wallMounted는 'surface') */
+  wallMountMode?: WallMountMode;
+  /** 바닥에서 하단까지 높이 (창대·콘센트 설치 높이, m) */
   elevation?: number;
   /** 상세 스펙 · 구매 정보 (price는 추후 AI Agent 추천 가구 검색 시에만 설정됨) */
   price?: number;
@@ -102,6 +111,8 @@ export interface Room {
   ownerId?: string;
   /** 방에 포함된 커스텀 AI 가구 스펙 (공유/리믹스 호환용) */
   customSpecs?: FurnitureSpec[];
+  /** 방 정면(+Z)의 지리적 방위 (미지정 시 'S' 남향으로 해석) */
+  facing?: RoomFacing;
 }
 
 /** 쇼룸 피드 게시물 */

@@ -1,6 +1,7 @@
-import type { FurnitureSpec, PlacedFurniture, Room } from '../types';
+import type { FurnitureSpec, PlacedFurniture, Room, RoomFacing } from '../types';
 import { newFurnitureId, newRoomId, newWallId } from '../ids';
 import { normalizeSpec } from '../migrate';
+import { parseOptionalRoomFacing } from '../orientation';
 
 /**
  * 공유 페이로드 v2 — v1에 사용자 치수(w/d/h)·문 방향(swing)·AI 가구 스펙(c)을 추가.
@@ -18,6 +19,8 @@ export interface SharePayloadV2 {
   f: FurnitureTupleV2[];
   /** 방에 쓰인 AI 가구 스펙(primitives 포함). 링크 길이 제한으로 생략될 수 있음 */
   c?: FurnitureSpec[];
+  /** 방 정면(+Z) 방위. 기본값 'S' 또는 미지정 시 생략 */
+  o?: RoomFacing;
 }
 
 const r3 = (n: number) => Math.round(n * 1000) / 1000;
@@ -39,6 +42,7 @@ const codeToSwing = (c: unknown): PlacedFurniture['swing'] | undefined =>
 export function slimSpec(s: FurnitureSpec): FurnitureSpec {
   const out: FurnitureSpec = { id: s.id, name: s.name, category: s.category, size: s.size, color: s.color, source: 'ai' };
   if (s.wallMounted) out.wallMounted = true;
+  if (s.wallMountMode === 'opening' || s.wallMountMode === 'surface') out.wallMountMode = s.wallMountMode;
   if (s.elevation) out.elevation = s.elevation;
   if (s.material) out.material = s.material;
   if (s.prompt) out.prompt = s.prompt;
@@ -69,6 +73,9 @@ export function toPayloadV2(room: Room, opts: { includeCustomSpecs?: boolean } =
     const specs = (room.customSpecs ?? []).filter((s) => used.has(s.id)).map(slimSpec);
     if (specs.length) payload.c = specs;
   }
+  if (room.facing && room.facing !== 'S') {
+    payload.o = room.facing;
+  }
   return payload;
 }
 
@@ -95,5 +102,7 @@ export function fromPayloadV2(p: SharePayloadV2, now = Date.now()): Room {
     const specs = p.c.map(normalizeSpec).filter((s): s is FurnitureSpec => !!s).map((s) => ({ ...s, source: 'ai' as const }));
     if (specs.length) room.customSpecs = specs;
   }
+  const facing = parseOptionalRoomFacing(p.o);
+  if (facing) room.facing = facing;
   return room;
 }

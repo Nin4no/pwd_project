@@ -14,7 +14,31 @@ const PAN_KEYS: Record<string, [number, number]> = {
   KeyW: [0, -1], KeyS: [0, 1], KeyA: [-1, 0], KeyD: [1, 0],
   ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0],
 };
-const TOOL_KEYS: Record<string, PlanTool> = { '1': 'wall', '2': 'rect', r: 'rect', '3': 'erase', e: 'erase', '4': 'select', v: 'select', '5': 'door', d: 'door' };
+
+/** 2D 도면 도구 단축키 (물리 키 코드 기준 — 한/영 IME 무관, KeyD·KeyW는 팬 전용) */
+export const PLAN_TOOL_CODES: Readonly<Record<string, PlanTool>> = {
+  Digit1: 'select', Numpad1: 'select', KeyV: 'select',
+  Digit2: 'wall', Numpad2: 'wall',
+  Digit3: 'rect', Numpad3: 'rect', KeyR: 'rect',
+  Digit4: 'door', Numpad4: 'door',
+  Digit5: 'erase', Numpad5: 'erase', KeyE: 'erase',
+};
+
+const PLAN_TOOL_KEY_FALLBACK: Readonly<Record<string, PlanTool>> = {
+  '1': 'select', v: 'select',
+  '2': 'wall',
+  '3': 'rect', r: 'rect',
+  '4': 'door',
+  '5': 'erase', e: 'erase',
+};
+
+export function resolvePlanToolKey(
+  e: Pick<KeyboardEvent, 'key' | 'code' | 'ctrlKey' | 'metaKey' | 'altKey' | 'shiftKey'>,
+): PlanTool | null {
+  if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return null;
+  if (e.code) return PLAN_TOOL_CODES[e.code] ?? null;
+  return PLAN_TOOL_KEY_FALLBACK[e.key.toLowerCase()] ?? null;
+}
 
 /** CSS 토큰(tokens.css)에서 캔버스 테마를 읽는다. 값이 없으면 기본 테마 */
 export function themeFromElement(el: Element): Partial<PlanTheme> {
@@ -79,7 +103,7 @@ export class FloorplanEditor implements FloorplanEditorApi {
     this.opts = opts;
     this.toolCtx = { catalog: opts.catalog, grid: opts.grid ?? 0.1, doorSpecId: opts.doorSpecId ?? 'door-wood' };
     this.theme = { ...DEFAULT_THEME, ...themeFromElement(canvas), ...opts.theme };
-    this.state = tools.initialState(doc, 'wall');
+    this.state = tools.initialState(doc, opts.initialTool ?? 'select');
     this.attach();
     this.resize(canvas.clientWidth || 800, canvas.clientHeight || 520);
   }
@@ -104,6 +128,15 @@ export class FloorplanEditor implements FloorplanEditorApi {
     const wallHeight = Math.min(5, Math.max(2, +h || 0));
     if (wallHeight === this.state.doc.wallHeight) return;
     this.emit({ ...this.state.doc, wallHeight }, true);
+  }
+
+  resizeRoom(target: { width?: number; depth?: number }): void {
+    const next = tools.resizeFloorplanDimensions(this.state.doc, target, this.toolCtx.catalog);
+    if (next === this.state.doc) return;
+    this.apply({
+      state: { ...this.state, doc: next, chain: null, rectStart: null, drag: null },
+      change: { doc: next, commit: true },
+    });
   }
 
   setBackground(bg: PlanBackground | null): void { this.background = bg; this.invalidate(); }
@@ -179,6 +212,7 @@ export class FloorplanEditor implements FloorplanEditorApi {
     if (this.raf) cancelAnimationFrame(this.raf);
     if (this.panLoop) cancelAnimationFrame(this.panLoop);
     this.raf = this.panLoop = 0;
+    this.panKeys.clear();
     this.background = null;
     this.furniture = [];
     this.roomsCache = null;
@@ -292,7 +326,7 @@ export class FloorplanEditor implements FloorplanEditorApi {
     if (e.key === 'Shift') { this.shiftDown = true; this.refreshHover(); return; }
     if (e.key === 'Alt') { this.altDown = true; return; }
     if (e.code === 'Space') { this.spaceDown = true; e.preventDefault(); return; }
-    if (e.ctrlKey || e.metaKey) return; // Ctrl+Z 등은 호스트(스토어 단축키) 담당
+    if (e.ctrlKey || e.metaKey || e.altKey) return; // Ctrl+Z·Alt+* 등은 호스트/브라우저 담당
     if (e.key === 'Escape') {
       if (this.isDrawing()) this.cancel(); else this.opts.onEscape?.();
       return;
@@ -300,10 +334,13 @@ export class FloorplanEditor implements FloorplanEditorApi {
     if (e.key === 'Enter') { if (this.state.chain) this.apply({ state: { ...this.state, chain: null } }); return; }
     if (e.key === '+' || e.key === '=') { e.preventDefault(); this.zoom(ZOOM_STEP); return; }
     if (e.key === '-' || e.key === '_') { e.preventDefault(); this.zoom(1 / ZOOM_STEP); return; }
-    if (e.key === 'f' || e.key === 'F' || e.key === '0') { this.fitToContent(); return; }
-    const tool = TOOL_KEYS[e.key.length === 1 ? e.key.toLowerCase() : e.key];
+    if (!e.shiftKey && (e.code === 'KeyF' || e.code === 'Digit0' || e.code === 'Numpad0' || (!e.code && (e.key === 'f' || e.key === 'F' || e.key === '0')))) {
+      this.fitToContent();
+      return;
+    }
+    if (PAN_KEYS[e.code]) { e.preventDefault(); this.panKeys.add(e.code); this.startPanLoop(); return; }
+    const tool = resolvePlanToolKey(e);
     if (tool) { this.setTool(tool); return; }
-    if (PAN_KEYS[e.code]) { e.preventDefault(); this.panKeys.add(e.code); this.startPanLoop(); }
   };
 
   private onKeyUp = (e: KeyboardEvent): void => {

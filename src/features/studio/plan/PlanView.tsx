@@ -3,7 +3,8 @@ import { FloorplanEditor, themeFromElement } from '../../../engine/floorplan';
 import { roomOffset } from '../../../engine/geometry';
 import { isDoorSpec, toPlanDocument } from '../../../domain/room';
 import type { Room } from '../../../domain/types';
-import { useStudioStoreApi } from '../context';
+import CompassHud from '../build/CompassHud';
+import { useStudio, useStudioStoreApi } from '../context';
 import type { StudioCatalog } from '../store';
 import { usePlanUi } from './PlanContext';
 import s from './Plan.module.css';
@@ -23,6 +24,9 @@ function previewOf(room: Room, catalog: StudioCatalog) {
  */
 export default function PlanView({ catalog }: { catalog: StudioCatalog }) {
   const store = useStudioStoreApi();
+  const facing = useStudio((st) => st.room?.facing);
+  const inspectorOpen = useStudio((st) => st.panels.inspector);
+  const setFacing = useStudio((st) => st.setFacing);
   const { state: ui, actions } = usePlanUi();
   const wrapRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -85,6 +89,7 @@ export default function PlanView({ catalog }: { catalog: StudioCatalog }) {
   return (
     <div ref={wrapRef} className={s.canvasWrap}>
       <canvas ref={canvasRef} className={s.canvas} role="img" aria-label="2D 도면 편집 캔버스 — 1~5 도구, F 맞춤, 휠로 확대" tabIndex={0} />
+      <CompassHud facing={facing} onChange={setFacing} inspectorOpen={inspectorOpen} />
     </div>
   );
 }

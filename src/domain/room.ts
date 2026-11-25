@@ -1,14 +1,17 @@
-import type { FurnitureSpec, PlacedFurniture, Room, Wall } from './types';
+import type { FurnitureSpec, PlacedFurniture, Room, RoomFacing, Wall } from './types';
 import type { CatalogReader } from './catalog';
 import { newFurnitureId, newRoomId, newWallId } from './ids';
+import { normalizeRoomFacing } from './orientation';
 import {
   DEFAULT_WALL_HEIGHT,
   computeCollisions,
   findClosedPolygons,
   furnitureOBB,
+  isWallSurfaceSpec,
   pointInPolygon,
   roomOffset,
   snapToWallLine,
+  snapToWallSurface,
   snapToWalls,
   wallsBounds,
 } from '../engine/geometry';
@@ -25,6 +28,7 @@ export interface CreateRoomInit {
   furniture?: PlacedFurniture[];
   id?: string;
   remixedFrom?: string;
+  facing?: RoomFacing;
 }
 
 export function createRoom(init: CreateRoomInit, now = Date.now()): Room {
@@ -38,7 +42,13 @@ export function createRoom(init: CreateRoomInit, now = Date.now()): Room {
     updatedAt: now,
   };
   if (init.remixedFrom) room.remixedFrom = init.remixedFrom;
+  if (init.facing) room.facing = init.facing;
   return room;
+}
+
+export function setRoomFacing(room: Room, facing: RoomFacing): Room {
+  if (normalizeRoomFacing(room.facing) === facing) return room;
+  return { ...room, facing };
 }
 
 export const touch = (room: Room, now = Date.now()): Room => ({ ...room, updatedAt: now });
@@ -71,12 +81,19 @@ export function addFurniture(
 export type FurniturePatch = Partial<Omit<PlacedFurniture, 'id' | 'specId'>>;
 
 /**
- * 배치 스냅 (구 Studio.applySnap): 벽 부착형(창문)은 항상 벽 중심선에, 바닥 가구는 snapOn일 때만 벽면에 흡착.
+ * 배치 스냅 (구 Studio.applySnap):
+ * - 벽 표면 부착형(콘센트 등)은 항상 벽 내측 표면에 밀착
+ * - 벽 개구부형(창문·문)은 항상 벽 중심선에 스냅
+ * - 바닥 가구는 snapOn일 때만 벽면에 흡착
  * 좌표는 3D Room 좌표(도면 좌표 − roomOffset).
  */
 export function snapPlaced(f: PlacedFurniture, spec: FurnitureSpec | undefined, walls: Wall[], snapOn: boolean): PlacedFurniture {
   if (!spec) return f;
   const offset = roomOffset(walls);
+  if (isWallSurfaceSpec(spec)) {
+    const s = snapToWallSurface(f, spec, walls, offset);
+    return { ...f, x: s.x, z: s.z, rotation: s.rotation };
+  }
   if (spec.wallMounted) {
     const s = snapToWallLine(f, spec, walls, offset);
     return { ...f, x: s.x, z: s.z, rotation: s.rotation };

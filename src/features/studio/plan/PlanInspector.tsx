@@ -18,6 +18,7 @@ export default function PlanInspector() {
 
   // revision이 바뀔 때마다(onChange) 다시 계산
   const summary = useMemo(() => editor?.summary() ?? null, [editor, ui.revision]); // eslint-disable-line react-hooks/exhaustive-deps
+  const bounds = summary?.bounds ?? null;
   const door = useMemo(
     () => (editor && ui.doorId ? editor.getDocument().doors.find((d) => d.id === ui.doorId) ?? null : null),
     [editor, ui.doorId, ui.revision], // eslint-disable-line react-hooks/exhaustive-deps
@@ -37,6 +38,45 @@ export default function PlanInspector() {
       </header>
 
       <div className={s.panelBody}>
+        <section className={s.section}>
+          <div className={s.sectionHead}>
+            <p className={s.sectionLabel}>방 크기</p>
+            <span className={s.sectionUnit}>0.01m</span>
+          </div>
+          {bounds ? (
+            <div className={s.dimGrid}>
+              <NumberField
+                label="가로"
+                size="sm"
+                unit="m"
+                min={0.3}
+                max={50}
+                step={0.01}
+                precision={2}
+                commitMode="blur"
+                value={+bounds.width.toFixed(2)}
+                disabled={!editor || bounds.width < 1e-4}
+                onCommit={(w) => editor?.resizeRoom({ width: w })}
+              />
+              <NumberField
+                label="세로"
+                size="sm"
+                unit="m"
+                min={0.3}
+                max={50}
+                step={0.01}
+                precision={2}
+                commitMode="blur"
+                value={+bounds.depth.toFixed(2)}
+                disabled={!editor || bounds.depth < 1e-4}
+                onCommit={(d) => editor?.resizeRoom({ depth: d })}
+              />
+            </div>
+          ) : (
+            <p className={s.emptyNote}>벽이나 사각형을 먼저 그리면 가로·세로 크기를 0.01m 단위로 조절할 수 있어요.</p>
+          )}
+        </section>
+
         <section className={s.section}>
           <p className={s.sectionLabel}>벽 높이</p>
           <NumberField

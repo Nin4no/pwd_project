@@ -51,6 +51,7 @@ export default function RoomCanvas({
   onDragEnd,
   onWalkLockChange,
   onRotate,
+  onAzimuthChange,
   catalog,
 }: RoomCanvasProps) {
   const getSpec = catalog ? (id: string) => catalog.get(id) : defaultGetSpec;
@@ -74,6 +75,7 @@ export default function RoomCanvas({
     onMove,
     onDragEnd,
     onWalkLockChange,
+    onAzimuthChange,
     getSpec,
   });
   stateRef.current = {
@@ -86,6 +88,7 @@ export default function RoomCanvas({
     onMove,
     onDragEnd,
     onWalkLockChange,
+    onAzimuthChange,
     getSpec,
   };
 
@@ -121,6 +124,7 @@ export default function RoomCanvas({
 
     let rafId = 0;
     let lastTime = performance.now();
+    let lastAzimuth = Number.NaN;
     const labelPos = new Vec3();
 
     const tick = (now: number) => {
@@ -128,6 +132,12 @@ export default function RoomCanvas({
       lastTime = now;
 
       renderer.render(dt);
+
+      const az = renderer.getCameraAzimuth();
+      if (Number.isNaN(lastAzimuth) || Math.abs(az - lastAzimuth) > 1e-4) {
+        lastAzimuth = az;
+        stateRef.current.onAzimuthChange?.(az);
+      }
 
       // 선택된 가구 3D → 2D 투영 플로팅 라벨 위치 동기화
       const labelEl = labelRef.current;
@@ -139,7 +149,8 @@ export default function RoomCanvas({
         const spec = f ? stateRef.current.getSpec(f.specId) : undefined;
         if (f && spec && stateRef.current.cameraMode !== 'walk') {
           const elev = spec.wallMounted ? spec.elevation ?? 0 : 0;
-          labelPos.set(f.x, elev + spec.size[2] + 0.25, f.z);
+          const effH = getEffectiveSize(f, spec)[2];
+          labelPos.set(f.x, elev + effH + 0.25, f.z);
           const scr = renderer.camera.projectToScreen(
             labelPos,
             canvas.clientWidth,
@@ -313,7 +324,8 @@ export default function RoomCanvas({
         const { item, spec } = picked;
         const wallMounted = Boolean(spec.wallMounted);
         const elev = wallMounted ? spec.elevation ?? 0 : 0;
-        const planeY = wallMounted ? elev + spec.size[2] / 2 : 0;
+        const effH = getEffectiveSize(item, spec)[2];
+        const planeY = wallMounted ? elev + effH / 2 : 0;
         const hitPt = renderer.pickHorizontalPlane(e.clientX, e.clientY, planeY);
         if (hitPt) {
           draggingItem = {

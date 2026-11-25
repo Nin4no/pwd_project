@@ -11,6 +11,7 @@ import {
   duplicateFurniture,
   furnitureOutside,
   removeFurniture,
+  setRoomFacing,
   setWalls,
   splitDoors,
   updateFurniture,
@@ -96,4 +97,21 @@ test('duplicateFurniture·cloneRoom은 새 id를 발급하고 소유자를 지�
   assert.equal(clone.remixedFrom, 'post-1');
   assert.deepEqual([clone.createdAt, clone.updatedAt, clone.title], [7, 7, '복제']);
   assert.equal(cloneRoom({ ...room }).remixedFrom, undefined);
+});
+
+test('createRoom·setRoomFacing·cloneRoom은 방위(facing)를 불변으로 관리한다', () => {
+  const r0 = createRoom({ title: '남향 기본', walls: rectWalls(4, 3) });
+  assert.equal(r0.facing, undefined);
+  // 기본값 S와 동일하면 참조 유지
+  assert.equal(setRoomFacing(r0, 'S'), r0);
+
+  const rE = setRoomFacing(r0, 'E');
+  assert.notEqual(rE, r0);
+  assert.equal(rE.facing, 'E');
+  assert.equal(setRoomFacing(rE, 'E'), rE);
+
+  const rWithInit = createRoom({ title: '서향', walls: rectWalls(4, 3), facing: 'W' });
+  assert.equal(rWithInit.facing, 'W');
+  const cloned = cloneRoom(rWithInit);
+  assert.equal(cloned.facing, 'W');
 });

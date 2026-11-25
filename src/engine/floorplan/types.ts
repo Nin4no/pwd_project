@@ -100,6 +100,8 @@ export interface FloorplanEditorOptions {
   grid?: number;
   /** 문 도구가 배치할 기본 문 스펙 id. 기본 'door-wood' */
   doorSpecId?: string;
+  /** 초기 선택 도구. 기본 'select' */
+  initialTool?: PlanTool;
 }
 
 export interface FloorplanEditorApi {
@@ -108,6 +110,8 @@ export interface FloorplanEditorApi {
   setDocument(doc: PlanDocument): void;
   getDocument(): PlanDocument;
   setWallHeight(h: number): void;
+  /** 전체 도면 가로·세로 크기 조절 (0.01m 단위, 히스토리 commit) */
+  resizeRoom(target: { width?: number; depth?: number }): void;
   setBackground(bg: PlanBackground | null): void;
   getBackground(): PlanBackground | null;
   /** 도면 위에 바닥 가구 풋프린트 표시 (도면 좌표). 편집 대상 아님 */

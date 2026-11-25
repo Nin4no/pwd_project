@@ -9,6 +9,7 @@ import {
   duplicateFurniture,
   furnitureOutside,
   removeFurniture,
+  setRoomFacing,
   snapPlaced,
   updateFurniture,
   type FurniturePatch,
@@ -185,6 +186,10 @@ export function createStudioStore(deps: StudioDeps): StoreApi<StudioStore> {
       setTitle(title) {
         const { room } = get();
         if (room && title !== room.title) commit({ ...room, title });
+      },
+      setFacing(facing) {
+        const { room } = get();
+        if (room) commit(setRoomFacing(room, facing));
       },
 
       select(id) { set({ selectedId: id }); },

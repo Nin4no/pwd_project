@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import type { FurnitureSpec, Room } from '../../src/domain/types';
 import { b64urlEncode, decodeRoom, encodeRoom, parseRoomJson, toRoomJson } from '../../src/domain/share';
 import { fromPayloadV1, type SharePayloadV1 } from '../../src/domain/share/v1';
+import { toPayloadV2 } from '../../src/domain/share/v2';
 import { rectWalls } from '../../src/engine/geometry';
 
 const aiSpec: FurnitureSpec = {
@@ -88,4 +89,20 @@ test('JSON 내보내기는 길이 제한 없이 전체 스펙을 담고 다시 �
   // v1 JSON도 읽힌다
   const v1 = JSON.stringify({ app: 'design-your-room', v: 1, t: 'a', h: 2.4, w: [], f: [] });
   assert.ok(parseRoomJson(v1));
+});
+
+test('v2 방위(facing): S/미지정은 o 생략, E/NW는 왕복 보존, v1 디코드는 영향 없음', () => {
+  assert.equal('o' in toPayloadV2(room), false);
+  assert.equal('o' in toPayloadV2({ ...room, facing: 'S' }), false);
+
+  for (const facing of ['E', 'NW'] as const) {
+    const payload = toPayloadV2({ ...room, facing });
+    assert.equal(payload.o, facing);
+    const { code } = encodeRoom({ ...room, facing });
+    const back = decodeRoom(code)!;
+    assert.equal(back.facing, facing);
+  }
+
+  const v1Code = b64urlEncode(JSON.stringify({ v: 1, t: 'v1', h: 2.4, w: [], f: [] }));
+  assert.equal(decodeRoom(v1Code)?.facing, undefined);
 });

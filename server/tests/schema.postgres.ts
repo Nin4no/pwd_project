@@ -144,6 +144,10 @@ test("서버 역할은 테이블에 접근할 수 있고 브라우저 역할은 
       { code: "42501" },
     );
     await assert.rejects(
+      db.query("select * from public.upsert_room('r1',$1,'Room','[]','[]','[]',2.4,null,null,'E')", [user1Id]),
+      { code: "42501" },
+    );
+    await assert.rejects(
       db.query("select * from public.remix_showroom_post('post-sample-1', '11111111-1111-4111-8111-111111111111')"),
       { code: "42501" },
     );
@@ -334,4 +338,83 @@ test("DB 제약조건: 빈 이름 및 잘못된 천장고 거절", async () => {
     ),
     { code: "23514" },
   );
+
+  await assert.rejects(
+    db.query(
+      "insert into public.rooms(id, owner_id, title, facing) values ('r3', $1, '테스트', 'XX')",
+      [user1Id],
+    ),
+    { code: "23514" },
+  );
+});
+
+test("방위(facing): 9-인자 기본값 'S', 10-인자 명시 저장·갱신, 잘못된 값 거절, 리믹스 보존, 10-인자 권한 검증", async () => {
+  const upsertGrants = await db.query<{ role_name: string; allowed: boolean }>(
+    `select role_name, has_function_privilege(
+       role_name,
+       'public.upsert_room(character varying, uuid, character varying, jsonb, jsonb, jsonb, numeric, text, character varying, character varying)',
+       'EXECUTE'
+     ) as allowed
+     from (values ('anon'), ('authenticated'), ('service_role')) as roles(role_name)`,
+  );
+  assert.deepEqual(upsertGrants.rows, [
+    { role_name: "anon", allowed: false },
+    { role_name: "authenticated", allowed: false },
+    { role_name: "service_role", allowed: true },
+  ]);
+
+  // 9-arg 호출은 기본값 'S'
+  const r9 = await db.query<{ facing: string }>(
+    "select facing from public.upsert_room('facing-9',$1,'남향 기본','[]','[]','[]',2.4,null,null)",
+    [user1Id],
+  );
+  assert.equal(r9.rows[0].facing, "S");
+
+  // 10-arg 호출은 명시 방위 'E' 저장 및 'NW'로 업데이트
+  const r10 = await db.query<{ facing: string }>(
+    "select facing from public.upsert_room('facing-10',$1,'동향 방','[]','[]','[]',2.4,null,null,'E')",
+    [user1Id],
+  );
+  assert.equal(r10.rows[0].facing, "E");
+
+  const r10Upd = await db.query<{ facing: string }>(
+    "select facing from public.upsert_room('facing-10',$1,'북서향 방','[]','[]','[]',2.4,null,null,'NW')",
+    [user1Id],
+  );
+  assert.equal(r10Upd.rows[0].facing, "NW");
+
+  // 10-arg 잘못된 방위는 check 제약조건(23514)으로 거절
+  await assert.rejects(
+    db.query(
+      "select * from public.upsert_room('facing-bad',$1,'잘못된 방위','[]','[]','[]',2.4,null,null,'XX')",
+      [user1Id],
+    ),
+    { code: "23514" },
+  );
+
+  // remix_showroom_post: 스냅샷의 유효한 facing 보존, 미지정/오류 시 'S'
+  await db.query(
+    "update public.showroom_posts set room_snapshot = jsonb_set(room_snapshot, '{facing}', '\"NE\"'::jsonb) where id='post-sample-1'",
+  );
+  const remixedNE = await db.query<{ facing: string }>(
+    "select facing from public.remix_showroom_post('post-sample-1', $1)",
+    [user1Id],
+  );
+  assert.equal(remixedNE.rows[0].facing, "NE");
+
+  await db.query(
+    "update public.showroom_posts set room_snapshot = jsonb_set(room_snapshot, '{facing}', '\"INVALID\"'::jsonb) where id='post-sample-1'",
+  );
+  const remixedFallback = await db.query<{ facing: string }>(
+    "select facing from public.remix_showroom_post('post-sample-1', $1)",
+    [user1Id],
+  );
+  assert.equal(remixedFallback.rows[0].facing, "S");
+
+  // 스키마 재실행 후에도 기존 방의 facing 보존
+  await db.exec(schema);
+  const afterRerun = await db.query<{ facing: string }>(
+    "select facing from public.rooms where id='facing-10'",
+  );
+  assert.equal(afterRerun.rows[0].facing, "NW");
 });

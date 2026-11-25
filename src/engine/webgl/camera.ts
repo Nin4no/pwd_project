@@ -461,6 +461,11 @@ export class CameraController {
     });
   }
 
+  /** 카메라 수평 시선 방위각(rad, -Z 기준 +X 방향 시계방향 증가) */
+  getAzimuth(): number {
+    return this.mode === 'walk' ? -this.walkYaw : -this.theta;
+  }
+
   cancelDrag(): void {
     this.dragAction = 'none';
   }

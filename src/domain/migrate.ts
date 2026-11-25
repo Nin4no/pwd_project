@@ -1,4 +1,5 @@
 import type { FurnitureSpec, PlacedFurniture, Room, ShowroomPost, Wall } from './types';
+import { parseOptionalRoomFacing } from './orientation';
 import { DEFAULT_WALL_HEIGHT } from '../engine/geometry';
 
 /**
@@ -67,6 +68,9 @@ export function normalizeSpec(input: unknown): FurnitureSpec | null {
     color: str(input.color) ?? '#cccccc',
   };
   if (input.wallMounted === true) spec.wallMounted = true;
+  if (input.wallMountMode === 'opening' || input.wallMountMode === 'surface') {
+    spec.wallMountMode = input.wallMountMode;
+  }
   const elevation = num(input.elevation);
   if (elevation !== undefined) spec.elevation = elevation;
   for (const k of ['brand', 'material', 'shopUrl', 'prompt'] as const) {
@@ -108,6 +112,8 @@ export function normalizeRoom(input: unknown): Room | null {
     const specs = input.customSpecs.map(normalizeSpec).filter((s): s is FurnitureSpec => !!s);
     if (specs.length) room.customSpecs = specs;
   }
+  const facing = parseOptionalRoomFacing(input.facing);
+  if (facing) room.facing = facing;
   return room;
 }
 
