@@ -25,20 +25,28 @@ export default function GenerateDrawer({ catalog, ai = aiApi }: Props) {
   const busy = useStudio((st) => st.busy === 'generating');
   const [tab, setTab] = useState<CreateTab>('text');
   const [prompt, setPrompt] = useState('');
+  const [error, setError] = useState('');
   const [result, setResult] = useState<GeneratedFurniture | null>(null);
 
-  const close = () => store.getState().setPanel('ai', null);
+  const close = () => {
+    setError('');
+    store.getState().setPanel('ai', null);
+  };
   const submit = async (e?: FormEvent) => {
     e?.preventDefault();
     const text = prompt.trim();
     if (!text || busy) return;
     const a = store.getState();
     a.setBusy('generating');
+    setError('');
     setResult(null);
     try {
       const r = await generateFurniture(ai, text);
       const spec = catalog.addUserFurniture(r.spec);
       setResult({ ...r, spec });
+    } catch (err) {
+      setResult(null);
+      setError(err instanceof Error && err.message ? err.message : '가구를 생성하지 못했어요.');
     } finally {
       store.getState().setBusy(null);
     }
@@ -60,16 +68,29 @@ export default function GenerateDrawer({ catalog, ai = aiApi }: Props) {
           rows={3}
           placeholder="예: 원목 수납장 120cm, 문 2개"
           value={prompt}
-          onChange={(e) => setPrompt(e.currentTarget.value)}
+          onChange={(e) => {
+            setPrompt(e.currentTarget.value);
+            if (error) setError('');
+          }}
           disabled={busy}
         />
         <div className={s.examples} role="group" aria-label="예시 문장">
           {EXAMPLES.map((ex) => (
-            <button key={ex} type="button" className={s.example} onClick={() => setPrompt(ex)} disabled={busy}>
+            <button
+              key={ex}
+              type="button"
+              className={s.example}
+              onClick={() => {
+                setPrompt(ex);
+                if (error) setError('');
+              }}
+              disabled={busy}
+            >
               {ex}
             </button>
           ))}
         </div>
+        {error && <p className={s.error} role="alert">{error}</p>}
       </form>
 
       {busy && <p className={s.status} role="status">설계도를 그리고 있어요…</p>}
@@ -102,7 +123,7 @@ export default function GenerateDrawer({ catalog, ai = aiApi }: Props) {
         tab === 'text' ? (
           result ? (
             <>
-              <Button variant="secondary" onClick={() => { setResult(null); setPrompt(''); }}>하나 더 만들기</Button>
+              <Button variant="secondary" onClick={() => { setResult(null); setPrompt(''); setError(''); }}>하나 더 만들기</Button>
               <Button onClick={placeNow}>바로 배치</Button>
             </>
           ) : (

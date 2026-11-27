@@ -39,6 +39,7 @@
   margin: 0;
   font-size: var(--fs-caption);
   font-weight: 500;
+  line-height: 1.45;
   color: var(--danger);
 }
 .result {

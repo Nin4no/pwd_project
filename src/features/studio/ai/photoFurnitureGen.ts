@@ -4,6 +4,7 @@ import { describeBlueprint } from '../../../engine/furniture/parse';
 import { scaleBlueprintToWidth } from '../../../engine/furniture/scaleBlueprint';
 import { blueprintToSpec } from '../../../engine/furniture/toSpec';
 import type { AiApi } from '../../../services/api';
+import { guardClientHintName, toAiRejectionError } from './aiRejection';
 import { describeAiFailure, generateLocally, type GeneratedFurniture } from './furnitureGen';
 
 export interface NormalizedCrop {
@@ -93,18 +94,20 @@ export async function extractFurnitureFromPhoto(
   ai: Pick<AiApi, 'generateFurnitureFromPhoto'>,
   params: PhotoExtractParams,
 ): Promise<PhotoExtractedFurniture> {
+  const safeHint = guardClientHintName(params.hintName);
+  const safeParams: PhotoExtractParams = safeHint !== undefined ? { ...params, hintName: safeHint } : params;
   try {
-    const res = await ai.generateFurnitureFromPhoto(params);
+    const res = await ai.generateFurnitureFromPhoto(safeParams);
     if (!res?.blueprint || !res.blueprint.root) {
-      return fallbackExtract(params, '알 수 없는 응답');
+      return fallbackExtract(safeParams, '알 수 없는 응답');
     }
 
     const bp =
-      typeof params.knownWidthCm === 'number'
-        ? scaleBlueprintToWidth(res.blueprint, params.knownWidthCm)
+      typeof safeParams.knownWidthCm === 'number'
+        ? scaleBlueprintToWidth(res.blueprint, safeParams.knownWidthCm)
         : res.blueprint;
 
-    const { spec, errors } = blueprintToSpec(bp, params.hintName?.trim() || bp.name);
+    const { spec, errors } = blueprintToSpec(bp, safeParams.hintName?.trim() || bp.name);
     if (errors.length === 0) {
       return {
         spec: { ...spec, source: 'ai' },
@@ -115,8 +118,10 @@ export async function extractFurnitureFromPhoto(
       };
     }
 
-    return fallbackExtract(params, `설계도 조립 오류(${errors[0]})`);
+    return fallbackExtract(safeParams, `설계도 조립 오류(${errors[0]})`);
   } catch (err) {
-    return fallbackExtract(params, describeAiFailure(err));
+    const rejected = toAiRejectionError(err, 'furniture-photo');
+    if (rejected) throw rejected;
+    return fallbackExtract(safeParams, describeAiFailure(err));
   }
 }

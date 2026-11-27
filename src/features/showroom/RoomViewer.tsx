@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState, type MutableRefObject } from 'react';
 import RoomCanvas, { type CameraMode } from '../studio/build/RoomCanvas';
 import CompassHud from '../studio/build/CompassHud';
+import { shouldShowCompassHud } from '../studio/build/compassVisibility';
 import type { SceneApi } from '../studio/build/RoomCanvas.types';
 import { Segmented } from '../../design/components';
 import type { Room } from '../../domain/types';
@@ -12,6 +13,7 @@ import s from './RoomViewer.module.css';
 export interface RoomViewer3DProps {
   room: Room;
   showControls?: boolean;
+  showCompass?: boolean;
   keyboardEnabled?: boolean;
   zoomEnabled?: boolean;
   apiRef?: MutableRefObject<SceneApi | null>;
@@ -22,6 +24,7 @@ export interface RoomViewer3DProps {
 export function RoomViewer3D({
   room,
   showControls = true,
+  showCompass = false,
   keyboardEnabled = true,
   zoomEnabled = true,
   apiRef,
@@ -30,6 +33,7 @@ export function RoomViewer3D({
   const [mode, setMode] = useState<CameraMode>('orbit');
   const [locked, setLocked] = useState(false);
   const azimuthSinkRef = useRef<((azimuthRad: number) => void) | null>(null);
+  const compassVisible = shouldShowCompassHud('viewer', { showCompass });
   return (
     <div className={s.viewer}>
       <RoomCanvas
@@ -39,10 +43,10 @@ export function RoomViewer3D({
         zoomEnabled={zoomEnabled}
         onWalkLockChange={setLocked}
         onRotate={onRotate}
-        onAzimuthChange={(az) => azimuthSinkRef.current?.(az)}
+        onAzimuthChange={compassVisible ? (az) => azimuthSinkRef.current?.(az) : undefined}
         apiRef={apiRef}
       />
-      <CompassHud facing={room.facing} variant="viewer" azimuthSinkRef={azimuthSinkRef} />
+      {compassVisible ? <CompassHud facing={room.facing} variant="viewer" azimuthSinkRef={azimuthSinkRef} /> : null}
       {showControls && mode === 'walk' && !locked ? (
         <div className={s.walkHint}>
           <p>

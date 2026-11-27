@@ -515,4 +515,117 @@ describe("furniture-photo prompt-guard hardening (11-2 Phase 2)", () => {
     expect(sysUnclosed).toContain(`<hint_name>${unclosedHint}</hint_name>`);
     expect(elapsedMs).toBeLessThan(50);
   });
+
+  test("rejects unrelated image (isFurniture:false) with 422 AI_UNRELATED_IMAGE and no stub furniture", async () => {
+    const ssePayload =
+      `data: ${JSON.stringify({
+        candidates: [
+          {
+            content: {
+              parts: [
+                {
+                  text: JSON.stringify({
+                    isFurniture: false,
+                    rejectionReason: "음식 사진이라 가구를 생성할 수 없어요.",
+                    name: "none",
+                    category: "storage",
+                    material: "wood_natural",
+                    summary: "not furniture",
+                    confidence: 0,
+                    root: { type: "carcass", w: 0.5, d: 0.5, h: 0.5 },
+                  }),
+                },
+              ],
+            },
+          },
+        ],
+      })}\n\ndata: [DONE]\n\n`;
+
+    (global as any).fetch = async () => ({
+      ok: true,
+      status: 200,
+      text: async () => ssePayload,
+    });
+
+    const res = await request(app)
+      .post("/api/ai/furniture-photo")
+      .set("authorization", "Bearer ok")
+      .send({ imageDataUrl: samplePng });
+
+    expect(res.status).toBe(422);
+    expect(res.body.code).toBe("AI_UNRELATED_IMAGE");
+    expect(res.body.message).toBe("음식 사진이라 가구를 생성할 수 없어요.");
+    expect(res.body.data).toBeUndefined();
+  });
+
+  test("rejects off-topic/gibberish hintName with 422 AI_UNRELATED_PROMPT while allowing custom brand/nickname hints", async () => {
+    let fetchCalls = 0;
+    (global as any).fetch = async () => {
+      fetchCalls++;
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    text: JSON.stringify({
+                      name: "이케아 빌리",
+                      category: "storage",
+                      material: "wood_white",
+                      summary: "책장",
+                      confidence: 0.9,
+                      root: { type: "carcass", w: 0.8, d: 0.3, h: 2.0 },
+                    }),
+                  },
+                ],
+              },
+            },
+          ],
+        }),
+      };
+    };
+
+    for (const badHint of ["오늘 날씨 알려줘", "12345", "120cm", "100mm", "2m", "ㅋㅋㅋ", "asdfqwerzxcv"]) {
+      resetAiRateLimit();
+      const res = await request(app)
+        .post("/api/ai/furniture-photo")
+        .set("authorization", "Bearer ok")
+        .send({ imageDataUrl: samplePng, hintName: badHint });
+      expect(res.status).toBe(422);
+      expect(res.body.code).toBe("AI_UNRELATED_PROMPT");
+    }
+    expect(fetchCalls).toBe(0);
+
+    for (const goodHint of ["이케아 빌리", "내 방 거", "원목 책상 120cm", "TV stand"]) {
+      resetAiRateLimit();
+      const res = await request(app)
+        .post("/api/ai/furniture-photo")
+        .set("authorization", "Bearer ok")
+        .send({ imageDataUrl: samplePng, hintName: goodHint });
+      expect(res.status).toBe(200);
+    }
+    expect(fetchCalls).toBe(4);
+  });
+
+  test("validates knownWidthCm and preferredCategory inside inferFurniturePhoto directly (defense-in-depth)", async () => {
+    let fetchCalls = 0;
+    (global as any).fetch = async () => {
+      fetchCalls++;
+      return { ok: true, status: 200, json: async () => ({}) };
+    };
+
+    await expect(
+      inferFurniturePhoto(samplePng, { knownWidthCm: 5 }),
+    ).rejects.toMatchObject({ statusCode: 400, code: "AI_INVALID_PROMPT" });
+    await expect(
+      inferFurniturePhoto(samplePng, { knownWidthCm: 601 }),
+    ).rejects.toMatchObject({ statusCode: 400, code: "AI_INVALID_PROMPT" });
+    await expect(
+      inferFurniturePhoto(samplePng, { preferredCategory: "spaceship" as any }),
+    ).rejects.toMatchObject({ statusCode: 400, code: "AI_INVALID_PROMPT" });
+    expect(fetchCalls).toBe(0);
+  });
 });

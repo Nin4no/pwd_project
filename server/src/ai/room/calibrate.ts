@@ -8,6 +8,20 @@ export function isValidRoomCalibration(c?: RoomCalibration): boolean {
   if (c.knownEdge && (!(c.knownEdge.meters > 0.5 && c.knownEdge.meters < 20) || ![0, 1].includes(c.knownEdge.index))) return false;
   return !c.floorCorners || (c.floorCorners.length === 4 && c.floorCorners.every(([u, v]) => u >= 0 && u <= 1 && v >= 0 && v <= 1));
 }
+export function sanitizeRoomCalibration(c?: RoomCalibration): RoomCalibration | undefined {
+  if (!c || !isValidRoomCalibration(c)) return undefined;
+  const out: RoomCalibration = {};
+  if (c.knownDimension) {
+    out.knownDimension = { kind: c.knownDimension.kind, meters: c.knownDimension.meters };
+  }
+  if (c.knownEdge) {
+    out.knownEdge = { index: c.knownEdge.index, meters: c.knownEdge.meters };
+  }
+  if (c.floorCorners) {
+    out.floorCorners = c.floorCorners.map(([u, v]) => [u, v] as [number, number]);
+  }
+  return Object.keys(out).length ? out : undefined;
+}
 function scaleFor(p: RoomPrediction, c?: RoomCalibration): number {
   if (c?.knownDimension) return c.knownDimension.meters / p.room[`${c.knownDimension.kind}_m`];
   // Both documented floor-corner side edges run along room depth.

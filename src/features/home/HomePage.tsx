@@ -240,6 +240,7 @@ export default function HomePage() {
                 <RoomViewer3D
                   room={activePost.room}
                   showControls={false}
+                  showCompass={false}
                   keyboardEnabled={false}
                   zoomEnabled={false}
                   onRotate={handleShowcaseRotate}

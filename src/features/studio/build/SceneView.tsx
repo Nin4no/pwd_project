@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react';
 import RoomCanvas from './RoomCanvas';
 import CompassHud from './CompassHud';
+import { shouldShowCompassHud } from './compassVisibility';
 import type { CatalogReader } from '../../../domain/catalog';
 import type { Room } from '../../../domain/types';
 import { useStudio, useStudioStoreApi } from '../context';
@@ -37,6 +38,7 @@ export default function SceneView({ catalog, animate = false, editable = true }:
 
   if (!room) return null;
   const a = store.getState();
+  const compassVisible = shouldShowCompassHud('studio-build', { editable });
   return (
     <>
       <RoomCanvas
@@ -53,14 +55,16 @@ export default function SceneView({ catalog, animate = false, editable = true }:
         onMove={(id, x, z, opts) => a.patch(id, { x, z }, { live: true, skipWallSnap: opts?.skipWallSnap })}
         onDragEnd={() => a.commitLive()}
         onWalkLockChange={a.setWalkLocked}
-        onAzimuthChange={(az) => azimuthSinkRef.current?.(az)}
+        onAzimuthChange={compassVisible ? (az) => azimuthSinkRef.current?.(az) : undefined}
       />
-      <CompassHud
-        facing={room.facing}
-        onChange={editable ? a.setFacing : undefined}
-        inspectorOpen={inspectorOpen}
-        azimuthSinkRef={azimuthSinkRef}
-      />
+      {compassVisible ? (
+        <CompassHud
+          facing={room.facing}
+          onChange={editable ? a.setFacing : undefined}
+          inspectorOpen={inspectorOpen}
+          azimuthSinkRef={azimuthSinkRef}
+        />
+      ) : null}
     </>
   );
 }

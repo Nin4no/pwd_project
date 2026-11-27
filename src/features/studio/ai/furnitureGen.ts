@@ -6,6 +6,7 @@ import type { FurnitureCategory, FurnitureSpec } from '../../../domain/types';
 import { FURNITURE } from '../../../data/furniture';
 import { uid } from '../../../engine/geometry';
 import type { AiApi } from '../../../services/api';
+import { guardClientFurniturePrompt, toAiRejectionError } from './aiRejection';
 
 export interface GeneratedFurniture {
   spec: FurnitureSpec;
@@ -28,6 +29,9 @@ export function describeAiFailure(err: unknown): string {
   if (/timeout|ECONNABORTED/i.test(msg)) return '응답 시간 초과';
   if (/Network Error|ECONNREFUSED/i.test(msg)) return '서버 연결 실패';
   if (/404/.test(msg) && /model/i.test(msg)) return 'AI 모델 설정 오류';
+  if (status === 400 || status === 422) {
+    return /[가-힣]/.test(msg) ? msg : '입력값을 확인해 주세요';
+  }
   return status ? `서버 오류 ${status}` : '알 수 없는 오류';
 }
 
@@ -89,17 +93,20 @@ export function generateLocally(prompt: string, reason?: string): GeneratedFurni
  * 카탈로그 등록은 호출자가 한다.
  */
 export async function generateFurniture(ai: Pick<AiApi, 'generateFurniture'>, prompt: string): Promise<GeneratedFurniture> {
+  const safePrompt = guardClientFurniturePrompt(prompt);
   try {
-    const res = await ai.generateFurniture(prompt);
+    const res = await ai.generateFurniture(safePrompt);
     if (res.blueprint) {
-      const r = fromBlueprint(res.blueprint, prompt);
+      const r = fromBlueprint(res.blueprint, safePrompt);
       if (r.errors.length === 0) return { spec: r.spec, description: r.description || res.summary, via: 'server', notes: [] };
-      return generateLocally(prompt, `설계도 조립 오류(${r.errors[0]})`);
+      return generateLocally(safePrompt, `설계도 조립 오류(${r.errors[0]})`);
     }
-    if (res.spec && validSize(res.spec.size)) return { spec: { ...res.spec, source: 'ai', prompt }, description: res.summary, via: 'server', notes: [] };
-    if (res.spec) return generateLocally(prompt, '응답 치수 오류');
-    return generateLocally(prompt, '알 수 없는 응답');
+    if (res.spec && validSize(res.spec.size)) return { spec: { ...res.spec, source: 'ai', prompt: safePrompt }, description: res.summary, via: 'server', notes: [] };
+    if (res.spec) return generateLocally(safePrompt, '응답 치수 오류');
+    return generateLocally(safePrompt, '알 수 없는 응답');
   } catch (err) {
-    return generateLocally(prompt, describeAiFailure(err));
+    const rejected = toAiRejectionError(err, 'furniture-text');
+    if (rejected) throw rejected;
+    return generateLocally(safePrompt, describeAiFailure(err));
   }
 }

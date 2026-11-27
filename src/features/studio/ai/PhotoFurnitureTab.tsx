@@ -140,7 +140,10 @@ export default function PhotoFurnitureTab({ catalog, ai, onPlaced }: Props) {
       setResult(extracted);
       setEditedName(extracted.spec.name);
     } catch (err) {
-      if (mySeq === seqRef.current) setError(err instanceof Error ? err.message : '사진에서 가구를 추출하지 못했어요.');
+      if (mySeq === seqRef.current) {
+        setResult(null);
+        setError(err instanceof Error && err.message ? err.message : '사진에서 가구를 추출하지 못했어요.');
+      }
     } finally {
       if (mySeq === seqRef.current) store.getState().setBusy(null);
     }
@@ -192,7 +195,7 @@ export default function PhotoFurnitureTab({ catalog, ai, onPlaced }: Props) {
           <PhotoCropBox
             src={photo.dataUrl}
             crop={crop}
-            onChange={(next) => { setCrop(next); if (result) setResult(null); }}
+            onChange={(next) => { setCrop(next); if (result) setResult(null); if (error) setError(''); }}
             disabled={busy}
           />
           <div className={s.hintsGrid}>
@@ -201,12 +204,18 @@ export default function PhotoFurnitureTab({ catalog, ai, onPlaced }: Props) {
               label="가구 이름 (선택)"
               placeholder="예: 원목 암체어"
               value={hintName}
-              onChange={(e) => setHintName(e.currentTarget.value)}
+              onChange={(e) => { setHintName(e.currentTarget.value); if (error) setError(''); }}
               disabled={busy}
             />
             <div className={s.subField}>
               <label htmlFor={catId} className={s.subLabel}>카테고리 (선택)</label>
-              <select id={catId} className={s.select} value={category} onChange={(e) => setCategory(e.currentTarget.value as '' | FurnitureCategory)} disabled={busy}>
+              <select
+                id={catId}
+                className={s.select}
+                value={category}
+                onChange={(e) => { setCategory(e.currentTarget.value as '' | FurnitureCategory); if (error) setError(''); }}
+                disabled={busy}
+              >
                 {CATEGORIES.map((c) => <option key={c.value || 'auto'} value={c.value}>{c.label}</option>)}
               </select>
             </div>

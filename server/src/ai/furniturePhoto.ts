@@ -1,7 +1,9 @@
 import HttpError from "../utils/httpError";
 import { geminiFetch } from "./geminiFetch";
 import {
+  assertFurnitureRelevance,
   blueprintSchema,
+  FURNITURE_CATEGORIES,
   normalizeBlueprint,
   type Blueprint,
   type FurnitureCategory,
@@ -72,6 +74,9 @@ export function buildFurniturePhotoSystemPrompt(opts: FurniturePhotoOptions = {}
   const hintBlock = hints.length ? `\nUser hints:\n- ${hints.join("\n- ")}` : "";
 
   return `Analyze the single target piece of furniture shown in the photo (ignore background clutter or surrounding room items) and output a Furniture Blueprint v2 JSON.
+First verify whether the photo actually depicts a piece of furniture, interior fixture, lighting, mirror, opening (door/window), or home appliance:
+- If it does NOT (e.g. a selfie/person, pet, food, outdoor landscape/street/car, code/document screenshot, or blank image), set isFurniture to false, confidence to 0, and write a concise Korean rejectionReason explaining why; do not invent furniture.
+- Otherwise set isFurniture to true.
 Inspect the photo carefully to infer:
 - category, realistic primary material (MaterialKey) and optional accent material
 - overall proportions [w, d, h] in meters (each clamped to 0.05..3.2m) based on real-world furniture cues
@@ -170,6 +175,21 @@ export async function inferFurniturePhoto(
   imageDataUrl: string,
   opts: FurniturePhotoOptions = {},
 ): Promise<FurniturePhotoResult> {
+  if (opts.knownWidthCm !== undefined) {
+    if (
+      typeof opts.knownWidthCm !== "number" ||
+      !Number.isFinite(opts.knownWidthCm) ||
+      opts.knownWidthCm < 10 ||
+      opts.knownWidthCm > 600
+    ) {
+      throw new HttpError(400, "knownWidthCm must be between 10 and 600.", "AI_INVALID_PROMPT");
+    }
+  }
+  if (opts.preferredCategory !== undefined) {
+    if (!(FURNITURE_CATEGORIES as readonly string[]).includes(opts.preferredCategory)) {
+      throw new HttpError(400, "preferredCategory is invalid.", "AI_INVALID_PROMPT");
+    }
+  }
   const safeHintName = guardHintName(opts.hintName);
   const key = process.env.GEMINI_API_KEY;
   if (!key) throw new HttpError(503, "AI service is not configured.");
@@ -239,6 +259,11 @@ export async function inferFurniturePhoto(
   }
 
   const parsed = await parseGeminiResponse(response);
+  assertFurnitureRelevance(
+    parsed,
+    "AI_UNRELATED_IMAGE",
+    "가구와 관련이 없는 이미지라 가구를 생성하지 않았어요. 단일 가구가 잘 보이는 사진을 올려 주세요.",
+  );
   const normalized = normalizeBlueprint(parsed);
   const blueprint = applyKnownWidth(normalized, opts.knownWidthCm);
 

@@ -1,3 +1,5 @@
+import HttpError from "../utils/httpError";
+
 export const FURNITURE_CATEGORIES = [
   "bed",
   "desk",
@@ -165,6 +167,8 @@ export const blueprintSchema = {
   type: "OBJECT",
   propertyOrdering: ["name", "category", "material", "accent", "mount", "mountY", "summary", "root"],
   properties: {
+    isFurniture: { type: "BOOLEAN" },
+    rejectionReason: { type: "STRING" },
     name: { type: "STRING" },
     category: { type: "STRING", enum: [...FURNITURE_CATEGORIES] },
     material: { type: "STRING", enum: [...MATERIAL_KEYS] },
@@ -176,6 +180,30 @@ export const blueprintSchema = {
   },
   required: ["name", "category", "material", "summary", "root"],
 };
+
+export function pickKoreanRejectionReason(reason: unknown, fallbackMsg: string): string {
+  if (typeof reason === "string") {
+    const cleaned = reason.replace(/[\u0000-\u001F\u007F]+/g, " ").replace(/\s+/g, " ").trim();
+    if (cleaned && /[가-힣]/.test(cleaned)) {
+      return cleaned.slice(0, 200);
+    }
+  }
+  return fallbackMsg;
+}
+
+export function assertFurnitureRelevance(
+  raw: unknown,
+  code: "AI_UNRELATED_PROMPT" | "AI_UNRELATED_IMAGE",
+  fallbackMsg: string,
+): void {
+  if (raw && typeof raw === "object" && (raw as Record<string, unknown>).isFurniture === false) {
+    throw new HttpError(
+      422,
+      pickKoreanRejectionReason((raw as Record<string, unknown>).rejectionReason, fallbackMsg),
+      code,
+    );
+  }
+}
 
 const MAX_DEPTH = 4;
 const MIN_DIM = 0.05;

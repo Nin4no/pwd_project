@@ -3,6 +3,7 @@ import { roomPredictionToFloorplan } from '../../../engine/vision/roomPrediction
 import { analyzeRoomPixels, type RgbaImage, type RoomVisionResult } from '../../../engine/vision/roomVision';
 import type { AiFloorplanResult } from '../../../engine/vision/types';
 import type { AiApi } from '../../../services/api';
+import { toAiRejectionError } from '../ai/aiRejection';
 
 export const PREVIEW_MAX = 1280;
 const CV_MAX = 320;
@@ -90,6 +91,8 @@ export async function analyzePhoto(
     if (res.prediction) return { result: roomPredictionToFloorplan(res.prediction, photo.dataUrl, photo.aspect), via: 'server' };
     reason = '서버 분석 결과 없음';
   } catch (err) {
+    const rejected = toAiRejectionError(err, 'room-photo');
+    if (rejected) throw rejected;
     reason = err instanceof Error && err.message ? '서버 분석 실패' : '서버 연결 실패';
   }
   const local = analyzeRoomPixels(toPixels(photo.image));

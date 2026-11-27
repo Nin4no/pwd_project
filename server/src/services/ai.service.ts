@@ -6,6 +6,7 @@ import { inferRoom } from "../ai/room/roomVision";
 import { isValidRoomCalibration } from "../ai/room/calibrate";
 import type { RoomCalibration } from "../types/room.types";
 import {
+  assertFurnitureRelevance,
   blueprintSchema,
   FURNITURE_CATEGORIES,
   normalizeBlueprint,
@@ -29,6 +30,8 @@ const schema = {
   type: "OBJECT",
   propertyOrdering: ["name", "category", "materials", "plan", "size", "color", "summary", "primitives"],
   properties: {
+    isFurniture: { type: "BOOLEAN" },
+    rejectionReason: { type: "STRING" },
     name: { type: "STRING" },
     category: { type: "STRING", enum: categories },
     materials: { type: "ARRAY", items: { type: "STRING" } },
@@ -172,6 +175,12 @@ function sanitizeRetryFeedback(error: unknown): string {
     .slice(0, 300);
 }
 
+const FURNITURE_RELEVANCE_RULE =
+  "First verify whether <user_request> asks for furniture, an interior fixture, lighting, a mirror, an opening (door/window), a home appliance, or a room prop. If it is NOT related to furniture/interior items (e.g. weather, food/menu, coding, math, chat, unrelated topics), set isFurniture to false and provide a concise Korean rejectionReason; otherwise set isFurniture to true.";
+
+const UNRELATED_FURNITURE_TEXT_MSG =
+  "가구와 관련이 없는 내용이라 가구를 생성하지 않았어요. 침대·책상·수납장 같은 가구 설명을 입력해 주세요.";
+
 const furnitureSystemPrompt = `First list materials and decompose the real-world structure into parts in \`plan\` (part, count, material, size_m [w,h,d]), then build \`primitives\` matching every plan item's count and size. Coordinates are meters, Y-up, floor at y=0; pos is each primitive center. Boxes need size [w,h,d], cylinders radius and height. Build structurally connected, realistic furniture (touching/overlapping, no floating) using 6-80 primitives, panels/boards >= 0.015m thick, and symmetric legs/frames.
 Typical WxDxH (m) by category:
 - bed: 1.5-2.0 x 2.0-2.1 x 0.45-1.1
@@ -185,10 +194,12 @@ Typical WxDxH (m) by category:
 - appliance: 0.5-0.9 x 0.5-0.75 x 0.8-1.9
 Compound furniture (desk with hutch/bookshelf, study carrel, bed with storage, wardrobe with desk) = build each module in plan (base desk, side panels, back/privacy panels, upper shelf/hutch with supports) and connect them; upper modules must rest on the desktop or side panels, never float.
 For holes, slots or grids, model a thin panel + small dark box grid on the front face (e.g. pegboard holes 25mm spacing); model hooks/hangers as small cylinders. Use realistic materials for the object type: appliances (refrigerator, washer, TV, air conditioner…) are painted steel / stainless / glass / plastic in white, silver, gray or black — never wood unless the user explicitly asks; metal rack/pegboard -> painted steel or white board. Set each primitive's color, metalness and roughness to match. Respond JSON. Examples: ${JSON.stringify(fewshots)}
+${FURNITURE_RELEVANCE_RULE}
 ${USER_REQUEST_BOUNDARY}`;
 
 const blueprintSystemPrompt = `${BLUEPRINT_MODULE_RULES}
 Respond JSON. Examples: ${JSON.stringify(blueprintFewshots)}
+${FURNITURE_RELEVANCE_RULE}
 ${USER_REQUEST_BOUNDARY}`;
 
 async function gemini(prompt: string, image?: string, mode: "blueprint" | "primitives" = "blueprint"): Promise<any> {
@@ -247,6 +258,7 @@ async function createFurniturePrimitives(safePrompt: string) {
         undefined,
         "primitives",
       );
+      assertFurnitureRelevance(raw, "AI_UNRELATED_PROMPT", UNRELATED_FURNITURE_TEXT_MSG);
       const validated = validatePrimitives(raw.primitives);
       const errors = [...validated.errors];
       if (Array.isArray(raw.primitives) && raw.primitives.length >= 1 && raw.primitives.length < 3) {
@@ -310,6 +322,7 @@ async function createFurnitureBlueprint(safePrompt: string) {
         undefined,
         "blueprint",
       );
+      assertFurnitureRelevance(raw, "AI_UNRELATED_PROMPT", UNRELATED_FURNITURE_TEXT_MSG);
       const blueprint = normalizeBlueprint(raw);
       const summary: string = typeof raw?.summary === "string" && raw.summary.trim()
         ? raw.summary.trim()
@@ -341,10 +354,19 @@ export async function createFurniture(prompt: string) {
 }
 
 export async function analyzeRoom(imageDataUrl: string, calibration?: RoomCalibration) {
-  if (typeof imageDataUrl !== "string" || !/^data:image\/(png|jpeg|webp);base64,/.test(imageDataUrl) || Buffer.byteLength(imageDataUrl, "utf8") > 5 * 1024 * 1024) {
-    throw new HttpError(400, "imageDataUrl must be an image data URL of at most 5MB.");
+  const commaIdx = typeof imageDataUrl === "string" ? imageDataUrl.indexOf(",") : -1;
+  if (
+    typeof imageDataUrl !== "string" ||
+    !/^data:image\/(png|jpeg|webp);base64,/.test(imageDataUrl) ||
+    commaIdx < 0 ||
+    imageDataUrl.slice(commaIdx + 1).trim().length === 0 ||
+    Buffer.byteLength(imageDataUrl, "utf8") > 5 * 1024 * 1024
+  ) {
+    throw new HttpError(400, "imageDataUrl must be an image data URL of at most 5MB.", "AI_INVALID_PROMPT");
   }
-  if (!isValidRoomCalibration(calibration)) throw new HttpError(400, "calibration is invalid.");
+  if (!isValidRoomCalibration(calibration)) {
+    throw new HttpError(400, "calibration is invalid.", "AI_INVALID_PROMPT");
+  }
   try {
     return await inferRoom(imageDataUrl, calibration);
   } catch (error) {
@@ -364,17 +386,17 @@ export async function analyzeFurniturePhoto(imageDataUrl: string, opts: Furnitur
     imageDataUrl.slice(commaIdx + 1).trim().length === 0 ||
     Buffer.byteLength(imageDataUrl, "utf8") > 5 * 1024 * 1024
   ) {
-    throw new HttpError(400, "imageDataUrl must be an image data URL of at most 5MB.");
+    throw new HttpError(400, "imageDataUrl must be an image data URL of at most 5MB.", "AI_INVALID_PROMPT");
   }
   if (opts.knownWidthCm !== undefined) {
     if (typeof opts.knownWidthCm !== "number" || !Number.isFinite(opts.knownWidthCm) || opts.knownWidthCm < 10 || opts.knownWidthCm > 600) {
-      throw new HttpError(400, "knownWidthCm must be between 10 and 600.");
+      throw new HttpError(400, "knownWidthCm must be between 10 and 600.", "AI_INVALID_PROMPT");
     }
   }
   const safeHintName = guardHintName(opts.hintName);
   if (opts.preferredCategory !== undefined) {
     if (!(FURNITURE_CATEGORIES as readonly string[]).includes(opts.preferredCategory)) {
-      throw new HttpError(400, "preferredCategory is invalid.");
+      throw new HttpError(400, "preferredCategory is invalid.", "AI_INVALID_PROMPT");
     }
   }
 

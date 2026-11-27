@@ -1,11 +1,14 @@
 import type { RoomCalibration, RoomPrediction } from "../../types/room.types";
 import HttpError from "../../utils/httpError";
+import { pickKoreanRejectionReason } from "../blueprintSchema";
 import { geminiFetch } from "../geminiFetch";
-import { normalizeRoomPrediction } from "./calibrate";
+import { normalizeRoomPrediction, sanitizeRoomCalibration } from "./calibrate";
 
 export const roomResponseSchema = {
   type: "OBJECT",
   properties: {
+    isRoom: { type: "BOOLEAN" },
+    rejectionReason: { type: "STRING" },
     room: { type: "OBJECT", properties: { width_m: { type: "NUMBER" }, depth_m: { type: "NUMBER" }, height_m: { type: "NUMBER" } }, required: ["width_m", "depth_m", "height_m"] },
     openings: { type: "ARRAY", items: { type: "OBJECT", properties: { type: { type: "STRING", enum: ["door", "window"] }, wall: { type: "STRING", enum: ["N", "E", "S", "W"] }, offset_m: { type: "NUMBER" }, width_m: { type: "NUMBER" }, height_m: { type: "NUMBER" } }, required: ["type", "wall", "offset_m", "width_m", "height_m"] } },
     items: { type: "ARRAY", items: { type: "OBJECT", properties: { category: { type: "STRING", enum: ["bed", "desk", "storage", "seating", "table", "lighting", "other"] }, size_m: { type: "ARRAY", items: { type: "NUMBER" } }, pos_m: { type: "ARRAY", items: { type: "NUMBER" } }, rotation_deg: { type: "NUMBER" } }, required: ["category", "size_m", "pos_m", "rotation_deg"] } },
@@ -14,8 +17,9 @@ export const roomResponseSchema = {
 };
 
 export function buildRoomPrompt(calibration?: RoomCalibration): string {
-  const hint = calibration ? `Calibration supplied: ${JSON.stringify(calibration)}. Treat floorCorners as normalized image-coordinate hints [u,v], ordered left-back, right-back, right-front, left-front; do not treat them as metric values. Apply knownDimension/knownEdge as exact metric scale constraints.` : "No calibration supplied.";
-  return `Estimate this room from the photo. If the image is a 2D architectural floor plan (top-down drawing) instead of a photo, read it as a plan: use printed area labels (e.g. 전용면적 m²) and dimension text for exact scale, take the overall outer wall rectangle as the room, the plan top as N, and set height_m to 2.4 when no height is given. Return only the requested JSON shape, with dimensions in meters. Coordinate convention: origin is the floor center; x increases toward the image-right (east), z increases away from the camera (north); the camera-facing wall is S, far wall N, image-right wall E, image-left wall W. Room width is x, depth is z. Item pos_m is [x,z], measured from room center; size_m is [width,depth,height]; rotation_deg is yaw from the width axis. Opening offset_m starts at the left end of its named wall when viewed from inside. Estimate scale using visible cues: door height about 2.0 m, bed length about 2.0 m, ceiling height usually 2.3–2.7 m, desk height about 0.73 m. Use the cues together and do not invent precise measurements unsupported by the image. Return a confidence from 0 to 1. ${hint}`;
+  const safeCalibration = sanitizeRoomCalibration(calibration);
+  const hint = safeCalibration ? `Calibration supplied: ${JSON.stringify(safeCalibration)}. Treat floorCorners as normalized image-coordinate hints [u,v], ordered left-back, right-back, right-front, left-front; do not treat them as metric values. Apply knownDimension/knownEdge as exact metric scale constraints.` : "No calibration supplied.";
+  return `Estimate this room from the photo. First verify whether the image actually shows an indoor room/interior space or a 2D architectural floor plan: if it does NOT (e.g. a selfie/person, pet, food, outdoor landscape/street/car, document/code screenshot, blank image, or unrelated single object), set isRoom to false, confidence to 0, and write a concise Korean rejectionReason; otherwise set isRoom to true. If the image is a 2D architectural floor plan (top-down drawing) instead of a photo, read it as a plan: use printed area labels (e.g. 전용면적 m²) and dimension text for exact scale, take the overall outer wall rectangle as the room, the plan top as N, and set height_m to 2.4 when no height is given. Return only the requested JSON shape, with dimensions in meters. Coordinate convention: origin is the floor center; x increases toward the image-right (east), z increases away from the camera (north); the camera-facing wall is S, far wall N, image-right wall E, image-left wall W. Room width is x, depth is z. Item pos_m is [x,z], measured from room center; size_m is [width,depth,height]; rotation_deg is yaw from the width axis. Opening offset_m starts at the left end of its named wall when viewed from inside. Estimate scale using visible cues: door height about 2.0 m, bed length about 2.0 m, ceiling height usually 2.3–2.7 m, desk height about 0.73 m. Use the cues together and do not invent precise measurements unsupported by the image. Return a confidence from 0 to 1. ${hint}`;
 }
 
 function validPrediction(v: any): v is RoomPrediction & { confidence?: number } {
@@ -87,6 +91,16 @@ export async function inferRoom(imageDataUrl: string, calibration?: RoomCalibrat
   }
   const text = await readSseText(response);
   const parsed = JSON.parse(text || "{}");
+  if (parsed && typeof parsed === "object" && parsed.isRoom === false) {
+    throw new HttpError(
+      422,
+      pickKoreanRejectionReason(
+        parsed.rejectionReason,
+        "방이나 실내 도면과 관련이 없는 이미지예요. 실내 공간이나 평면도 사진을 올려 주세요.",
+      ),
+      "AI_UNRELATED_IMAGE",
+    );
+  }
   if (!validPrediction(parsed)) throw new Error("Gemini returned an invalid room prediction.");
   return { prediction: normalizeRoomPrediction(parsed, calibration), confidence: Math.max(0, Math.min(1, Number(parsed.confidence) || 0)) };
 }
