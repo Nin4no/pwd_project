@@ -25,10 +25,17 @@
   font-size: 14px;
   font-weight: 600;
   white-space: nowrap;
-  transition: color var(--dur) var(--ease-out);
+  transition:
+    transform var(--dur-press) var(--ease-out),
+    color var(--dur) var(--ease-out);
 }
-.tab:hover:not(:disabled):not(.selected) {
-  color: var(--text-sub);
+@media (hover: hover) and (pointer: fine) {
+  .tab:hover:not(:disabled):not(.selected) {
+    color: var(--text-sub);
+  }
+}
+.tab:active:not(:disabled):not(.selected) {
+  transform: scale(0.98);
 }
 .tab:disabled {
   opacity: 0.4;
@@ -62,4 +69,12 @@
 }
 .panel:focus-visible {
   outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tab {
+    transition-property: color;
+  }
+  .tab:active:not(:disabled):not(.selected) {
+    transform: none;
+  }
 }

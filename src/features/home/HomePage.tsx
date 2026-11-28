@@ -1,6 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button, HeartBurst, Spinner } from '../../design/components';
+import { useSectionScrollMotion } from '../../design/motion';
 import { createRoom } from '../../domain/room';
 import { rectWalls } from '../../engine/geometry';
 import { useRepositories } from '../../app/providers';
@@ -17,7 +18,6 @@ import {
   type ShowcaseAutoSlideController,
 } from './showcaseAutoSlide';
 import TemplateChips, { type RoomTemplate } from './TemplateChips';
-import page from '../../app/Page.module.css';
 import s from './Home.module.css';
 
 const RoomViewer3D = lazy(() => import('../showroom/RoomViewer').then((m) => ({ default: m.RoomViewer3D })));
@@ -56,6 +56,13 @@ export default function HomePage() {
   const mountedRef = useRef(false);
   const dirRef = useRef<'next' | 'prev'>('next');
   const hasSnapshotRef = useRef(false);
+
+  const {
+    sectionRef: heroSectionRef,
+    stageRef: heroStageRef,
+    heroCopyRef,
+    heroShowcaseRef,
+  } = useSectionScrollMotion<HTMLElement, HTMLDivElement>({ isFirstSection: true });
 
   useEffect(() => {
     const ctrl = createShowcaseAutoSlideController({
@@ -192,42 +199,50 @@ export default function HomePage() {
 
   return (
     <>
-      <section className={`${s.hero} grid-paper`}>
-        <div className={s.heroRow}>
-          <div className={s.heroInner}>
-            <div className={s.eyebrow}>
-              <span className={s.eyebrowTag}>ATELIER 3D</span>
+      <section ref={heroSectionRef} className={`${s.hero} grid-paper`} aria-label="메인 소개">
+        <div ref={heroStageRef} className={s.heroStage}>
+          <div className={s.heroRow}>
+          <div ref={heroCopyRef} className={s.heroInner}>
+            <div className={s.heroLead}>
+              <div className={s.eyebrow}>
+                <span className={s.eyebrowTag}>ATELIER 3D</span>
+              </div>
+              <h1 className={s.heroTitle}>나만의 방을 3D로</h1>
             </div>
-            <h1 className={s.heroTitle}>나만의 방을 3D로</h1>
-            <div className={s.heroSubBlock}>
-              <p className={s.heroSub}>치수대로 그리고, 가구를 직접 배치해보세요.</p>
-              <div className={s.heroScaleRow} aria-hidden="true">
-                <span className={s.heroDim} />
-                <span className={`${s.eyebrowMeta} num`}>1 : 50</span>
+            <div className={s.heroBody}>
+              <div className={s.heroSubBlock}>
+                <p className={s.heroSub}>치수대로 그리고, 가구를 직접 배치해보세요.</p>
+                <div className={s.heroScaleRow} aria-hidden="true">
+                  <span className={s.heroDim} />
+                  <span className={`${s.eyebrowMeta} num`}>1 : 50</span>
+                </div>
+              </div>
+              <p className={s.heroNote}>
+                설치 없이 브라우저에서 바로 —<br />
+                모눈종이에 쓱 그리면 실제 비율의 3D 방이 완성됩니다.
+              </p>
+              <div className={s.ctas}>
+                <Button variant="brand" size="lg" className={s.primaryCta} onClick={drawPlan}>
+                  새 방 만들기
+                </Button>
+                <Link className={s.textCta} to={ROUTES.showroom}>
+                  쇼룸 둘러보기 →
+                </Link>
               </div>
             </div>
-            <p className={s.heroNote}>
-              설치 없이 브라우저에서 바로 —<br />
-              모눈종이에 쓱 그리면 실제 비율의 3D 방이 완성됩니다.
-            </p>
-            <div className={s.ctas}>
-              <Button variant="brand" size="lg" className={s.primaryCta} onClick={drawPlan}>
-                새 방 만들기
-              </Button>
-              <Link className={s.textCta} to={ROUTES.showroom}>
-                쇼룸 둘러보기 →
-              </Link>
+            <div className={s.heroTemplates}>
+              <TemplateChips onPick={fromTemplate} />
             </div>
-            <TemplateChips onPick={fromTemplate} />
           </div>
 
-          <div
-            className={s.showcase}
-            aria-label="실시간 3D 공간 미리보기"
-            onPointerEnter={(e) => autoSlideCtrlRef.current?.onPointerEnter(e.pointerType)}
-            onPointerLeave={() => autoSlideCtrlRef.current?.onPointerLeave()}
-            onPointerDown={() => autoSlideCtrlRef.current?.onPointerDown()}
-          >
+          <div ref={heroShowcaseRef} className={s.heroShowcaseScroll}>
+            <div
+              className={s.showcase}
+              aria-label="실시간 3D 공간 미리보기"
+              onPointerEnter={(e) => autoSlideCtrlRef.current?.onPointerEnter(e.pointerType)}
+              onPointerLeave={() => autoSlideCtrlRef.current?.onPointerLeave()}
+              onPointerDown={() => autoSlideCtrlRef.current?.onPointerDown()}
+            >
             <canvas ref={outgoingRef} className={s.showcaseOutgoing} aria-hidden="true" />
             <div ref={stageRef} className={s.showcaseStage}>
               <Suspense
@@ -295,13 +310,13 @@ export default function HomePage() {
                 </button>
               </>
             ) : null}
+            </div>
           </div>
         </div>
+        </div>
       </section>
-      <div className={page.page}>
-        <RecentRooms onStart={drawPlan} />
-        <PopularPosts />
-      </div>
+      <RecentRooms onStart={drawPlan} />
+      <PopularPosts />
     </>
   );
 }

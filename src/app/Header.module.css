@@ -40,19 +40,33 @@
   font-weight: 600;
   color: var(--text-sub);
   white-space: nowrap;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
   transition:
+    transform var(--dur-float) var(--ease-float),
+    box-shadow var(--dur-float) var(--ease-float),
     background-color var(--dur) var(--ease-out),
     color var(--dur) var(--ease-out);
-}
-.link:hover {
-  background: var(--grey-100);
-  color: var(--text);
 }
 .active {
   color: var(--primary);
 }
-.active:hover {
-  color: var(--primary);
+@media (hover: hover) and (pointer: fine) {
+  .link:hover {
+    background: var(--grey-100);
+    color: var(--text);
+    transform: translateY(var(--btn-float-y));
+    box-shadow: var(--shadow-btn-hover);
+  }
+  .active:hover {
+    color: var(--primary);
+  }
+}
+.link:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: none;
+  transition-duration: var(--dur-press);
 }
 .side {
   display: flex;
@@ -93,9 +107,25 @@
   font-size: 14px;
   font-weight: 600;
   color: var(--text);
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  transition:
+    transform var(--dur-float) var(--ease-float),
+    box-shadow var(--dur-float) var(--ease-float),
+    background-color var(--dur) var(--ease-out);
 }
-.user:hover {
-  background: var(--line);
+@media (hover: hover) and (pointer: fine) {
+  .user:hover {
+    background: var(--line);
+    transform: translateY(var(--btn-float-y));
+    box-shadow: var(--shadow-btn-hover);
+  }
+}
+.user:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: none;
+  transition-duration: var(--dur-press);
 }
 .avatar {
   display: inline-flex;
@@ -140,5 +170,77 @@
   }
   .user {
     padding: 0 var(--sp-1);
+  }
+}
+
+/* Policybazaar 패턴: 순수 CSS Scroll-Driven 헤더 깊이감 + 2px 컴포지터 스크롤 진행 바 (높이 64px 불변) */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: scroll()) and (animation-range: 0px 120px) {
+    .header {
+      animation: headerScrollDepth 1ms linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0px 120px;
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -1px;
+      height: 2px;
+      background: linear-gradient(90deg, var(--primary) 0%, var(--brand) 100%);
+      transform-origin: left center;
+      pointer-events: none;
+      animation: headerScrollProgress 1ms linear both;
+      animation-timeline: scroll(root block);
+      animation-range: 0% 100%;
+    }
+  }
+}
+
+@keyframes headerScrollDepth {
+  from {
+    background: var(--surface-glass);
+    box-shadow: 0 1px 0 transparent;
+    border-bottom-color: var(--line);
+  }
+  to {
+    background: color-mix(in srgb, var(--surface) 96%, transparent);
+    box-shadow: 0 4px 18px rgba(16, 32, 64, 0.08);
+    border-bottom-color: var(--border);
+  }
+}
+
+@keyframes headerScrollProgress {
+  from {
+    transform: scaleX(0);
+    opacity: 0.35;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header {
+    animation: none;
+    animation-timeline: auto;
+  }
+  .header::after {
+    display: none;
+    animation: none;
+    animation-timeline: auto;
+  }
+  .link,
+  .user {
+    transition-property: background-color, color;
+  }
+  .link:hover,
+  .link:active,
+  .user:hover,
+  .user:active {
+    transform: none;
   }
 }

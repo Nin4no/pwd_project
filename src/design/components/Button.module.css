@@ -13,14 +13,15 @@
   line-height: 1;
   padding-top: 1px;
   white-space: nowrap;
+  touch-action: manipulation;
   user-select: none;
+  -webkit-user-select: none;
   transition:
-    transform var(--dur-fast) var(--ease-out),
+    transform var(--dur-float) var(--ease-float),
+    box-shadow var(--dur-float) var(--ease-float),
     background-color var(--dur) var(--ease-out),
+    border-color var(--dur) var(--ease-out),
     color var(--dur) var(--ease-out);
-}
-.btn:active:not(:disabled) {
-  transform: scale(0.97);
 }
 .btn:disabled {
   cursor: not-allowed;
@@ -56,39 +57,55 @@
   background: var(--primary);
   color: var(--surface);
 }
-.primary:hover:not(:disabled) {
-  background: var(--primary-dark);
-}
 .brand {
   background: var(--brand);
   color: var(--brand-ink);
-}
-.brand:hover:not(:disabled) {
-  background: var(--brand-dark);
 }
 .secondary {
   background: var(--grey-100);
   color: var(--text-sub);
 }
-.secondary:hover:not(:disabled) {
-  background: var(--line);
-  color: var(--text);
-}
 .ghost {
   background: transparent;
   color: var(--text-sub);
-}
-.ghost:hover:not(:disabled) {
-  background: var(--grey-100);
-  color: var(--text);
 }
 .danger {
   background: var(--danger-soft);
   color: var(--danger);
 }
-.danger:hover:not(:disabled) {
-  background: var(--danger);
-  color: var(--surface);
+
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover:not(:disabled) {
+    transform: translateY(var(--btn-float-y));
+  }
+  .primary:hover:not(:disabled) {
+    background: var(--primary-dark);
+    box-shadow: var(--shadow-btn-hover-strong);
+  }
+  .brand:hover:not(:disabled) {
+    background: var(--brand-dark);
+    box-shadow: var(--shadow-btn-hover-strong);
+  }
+  .secondary:hover:not(:disabled) {
+    background: var(--line);
+    color: var(--text);
+    box-shadow: var(--shadow-btn-hover);
+  }
+  .ghost:hover:not(:disabled) {
+    background: var(--grey-100);
+    color: var(--text);
+    box-shadow: var(--shadow-btn-hover);
+  }
+  .danger:hover:not(:disabled) {
+    background: var(--danger);
+    color: var(--surface);
+    box-shadow: var(--shadow-btn-hover-strong);
+  }
+}
+.btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+  box-shadow: var(--shadow-btn-active);
+  transition-duration: var(--dur-press);
 }
 
 .inner {
@@ -125,8 +142,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .btn {
-    transition: none;
+    transition-property: background-color, border-color, color;
   }
+  .btn:hover:not(:disabled),
   .btn:active:not(:disabled) {
     transform: none;
   }

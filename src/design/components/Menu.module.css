@@ -55,11 +55,18 @@
   font-size: 14px;
   color: var(--text);
   text-align: left;
+  transition:
+    transform var(--dur-press) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
 }
-.item:hover:not(:disabled),
 .item:focus-visible {
   background: var(--grey-100);
   outline: none;
+}
+.item:active:not(:disabled) {
+  transform: scale(0.98);
+  background: var(--grey-100);
 }
 .item:disabled {
   color: var(--muted);
@@ -68,9 +75,17 @@
 .danger {
   color: var(--danger);
 }
-.danger:hover:not(:disabled),
-.danger:focus-visible {
+.danger:focus-visible,
+.danger:active:not(:disabled) {
   background: var(--danger-soft);
+}
+@media (hover: hover) and (pointer: fine) {
+  .item:hover:not(:disabled) {
+    background: var(--grey-100);
+  }
+  .danger:hover:not(:disabled) {
+    background: var(--danger-soft);
+  }
 }
 .icon {
   display: inline-flex;
@@ -96,6 +111,22 @@
 @keyframes pop {
   from {
     opacity: 0;
-    transform: scale(0.95);
+    transform: scale(0.96);
+  }
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu {
+    animation-name: fade;
+  }
+  .item {
+    transition-property: background-color, color;
+  }
+  .item:active:not(:disabled) {
+    transform: none;
   }
 }

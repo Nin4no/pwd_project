@@ -18,13 +18,14 @@
   font: inherit;
   font-size: var(--fs-caption);
   cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
   transition:
     background-color var(--dur-fast) var(--ease-out),
     border-color var(--dur-fast) var(--ease-out),
-    transform var(--dur-fast) var(--ease-out);
-}
-.example:active:not(:disabled) {
-  transform: scale(0.975);
+    box-shadow var(--dur-float) var(--ease-float),
+    transform var(--dur-float) var(--ease-float);
 }
 .example:disabled {
   opacity: 0.5;
@@ -419,13 +420,14 @@
   font: inherit;
   text-align: left;
   cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
   transition:
     border-color var(--dur-fast) var(--ease-out),
     background-color var(--dur-fast) var(--ease-out),
-    transform var(--dur-fast) var(--ease-out);
-}
-.preset:active {
-  transform: scale(0.985);
+    box-shadow var(--dur-float) var(--ease-float),
+    transform var(--dur-float) var(--ease-float);
 }
 .preset[aria-checked='true'] {
   border-color: var(--primary);
@@ -450,9 +452,13 @@
   .example:hover:not(:disabled) {
     background: var(--surface-sub);
     border-color: var(--border-strong);
+    transform: translateY(var(--btn-float-y));
+    box-shadow: var(--shadow-btn-hover);
   }
-  .preset:hover {
+  .preset:hover:not(:disabled) {
     border-color: var(--border-strong);
+    transform: translateY(var(--btn-float-y));
+    box-shadow: var(--shadow-btn-hover);
   }
   .select:hover:not(:disabled):not(:focus) {
     border-color: var(--line);
@@ -460,6 +466,16 @@
   .numBox:hover:not(.numDisabled):not(:focus-within) {
     border-color: var(--line);
   }
+}
+.example:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+  box-shadow: var(--shadow-btn-active);
+  transition-duration: var(--dur-press);
+}
+.preset:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+  box-shadow: var(--shadow-btn-active);
+  transition-duration: var(--dur-press);
 }
 
 @media (max-width: 768px) {
@@ -477,8 +493,10 @@
   .preset {
     transition: none;
   }
+  .example:hover:not(:disabled),
   .example:active:not(:disabled),
-  .preset:active {
+  .preset:hover:not(:disabled),
+  .preset:active:not(:disabled) {
     transform: none;
   }
 }

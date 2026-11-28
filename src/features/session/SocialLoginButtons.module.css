@@ -21,15 +21,15 @@
   color: var(--text);
   font-size: 14px;
   font-weight: 600;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
   transition:
-    transform var(--dur-fast) var(--ease-out),
-    background-color var(--dur) var(--ease-out);
-}
-.btn:hover:not(:disabled) {
-  background: var(--surface-sub);
-}
-.btn:active:not(:disabled) {
-  transform: scale(0.98);
+    transform var(--dur-float) var(--ease-float),
+    box-shadow var(--dur-float) var(--ease-float),
+    background-color var(--dur) var(--ease-out),
+    border-color var(--dur) var(--ease-out),
+    filter var(--dur) var(--ease-out);
 }
 .btn:disabled {
   cursor: not-allowed;
@@ -60,13 +60,28 @@
   background: var(--brand-naver);
   color: var(--brand-naver-ink);
 }
-.naver:hover:not(:disabled) {
-  background: var(--brand-naver);
-  filter: brightness(0.95);
-}
 .naver .mark {
   background: transparent;
   color: var(--brand-naver-ink);
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover:not(:disabled) {
+    background: var(--surface-sub);
+    border-color: var(--border-strong);
+    transform: translateY(var(--btn-float-y));
+    box-shadow: var(--shadow-btn-hover);
+  }
+  .naver:hover:not(:disabled) {
+    background: var(--brand-naver);
+    border-color: var(--brand-naver);
+    filter: brightness(0.95);
+    box-shadow: var(--shadow-btn-hover-strong);
+  }
+}
+.btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+  box-shadow: var(--shadow-btn-active);
+  transition-duration: var(--dur-press);
 }
 .label {
   flex: 1 1 auto;
@@ -88,6 +103,10 @@
   font-weight: 700;
 }
 @media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition-property: background-color, border-color, filter;
+  }
+  .btn:hover:not(:disabled),
   .btn:active:not(:disabled) {
     transform: none;
   }

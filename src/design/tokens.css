@@ -71,6 +71,13 @@
   --shadow-sm: 0 1px 2px rgba(16, 32, 64, 0.06), 0 4px 12px rgba(16, 32, 64, 0.05);
   --shadow: 0 2px 4px rgba(16, 32, 64, 0.05), 0 10px 28px rgba(16, 32, 64, 0.09);
   --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.12);
+  --shadow-card-float:
+    0 2px 6px rgba(16, 32, 64, 0.04),
+    0 12px 28px -4px rgba(16, 32, 64, 0.1),
+    0 22px 40px -12px rgba(16, 32, 64, 0.07);
+  --shadow-btn-hover: 0 4px 10px rgba(16, 32, 64, 0.08), 0 1px 3px rgba(16, 32, 64, 0.06);
+  --shadow-btn-hover-strong: 0 6px 16px rgba(16, 32, 64, 0.14), 0 2px 4px rgba(16, 32, 64, 0.08);
+  --shadow-btn-active: 0 1px 2px rgba(16, 32, 64, 0.05);
 
   /* Typography scale */
   --fs-display: 28px;
@@ -87,13 +94,21 @@
 
   /* Motion & Duration */
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-float: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
   --ease: cubic-bezier(0.23, 1, 0.32, 1);
+  --dur-press: 100ms;
   --dur-fast: 120ms;
   --dur: 180ms;
+  --dur-float: 200ms;
+  --dur-card-float: 280ms;
   --dur-modal: 220ms;
   --dur-sheet: 260ms;
+  --dur-reveal-card: 360ms;
+  --dur-reveal: 400ms;
+  --btn-float-y: -2px;
+  --card-float-y: -4px;
 
   --header-h: 64px;
   /* 스튜디오 상단 막대 — 2D/3D 전환 버튼 주변 여백 확보 */

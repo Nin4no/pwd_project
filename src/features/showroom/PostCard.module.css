@@ -8,15 +8,15 @@
   box-shadow: var(--shadow-sm);
   overflow: hidden;
   transition:
-    transform var(--dur) var(--ease-out),
-    box-shadow var(--dur) var(--ease-out),
-    border-color var(--dur) var(--ease-out);
+    transform var(--dur-card-float) var(--ease-float),
+    box-shadow var(--dur-card-float) var(--ease-float),
+    border-color var(--dur-card-float) var(--ease-float);
 }
 @media (hover: hover) and (pointer: fine) {
   .card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow);
-    border-color: var(--border-strong);
+    transform: translate3d(0, var(--card-float-y), 0);
+    box-shadow: var(--shadow-card-float);
+    border-color: color-mix(in srgb, var(--primary) 26%, var(--border));
   }
 }
 .thumb {
@@ -26,6 +26,10 @@
   border-bottom: 1px solid var(--line);
   border-radius: 0;
   overflow: hidden;
+  transition: opacity var(--dur-press) var(--ease-out);
+}
+.thumb:active {
+  opacity: 0.92;
 }
 .body {
   display: flex;
@@ -110,21 +114,21 @@
   color: var(--text-sub);
   font-size: var(--fs-sub);
   font-weight: 600;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
   transition:
-    transform var(--dur-fast) var(--ease-out),
+    transform var(--dur-press) var(--ease-out),
     background-color var(--dur) var(--ease-out),
     border-color var(--dur) var(--ease-out),
     color var(--dur) var(--ease-out);
 }
-@media (hover: hover) and (pointer: fine) {
-  .like:not(.liked):hover {
-    background: var(--primary-soft);
-    border-color: color-mix(in srgb, var(--primary) 30%, transparent);
-    color: var(--primary-dark);
-  }
+.like:active:not(:disabled) {
+  transform: scale(0.96);
 }
-.like:active {
-  transform: scale(0.97);
+.like:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 .sm {
   height: 34px;
@@ -146,12 +150,17 @@
   height: 16px;
 }
 @media (prefers-reduced-motion: reduce) {
-  .card,
-  .card:hover,
-  .title,
-  .like,
-  .like:active {
-    transition: none;
+  .card {
+    transition-property: box-shadow, border-color;
+  }
+  .card:hover {
+    transform: none;
+  }
+  .like {
+    transition-property: background-color, border-color, color;
+  }
+  .like:hover:not(:disabled),
+  .like:active:not(:disabled) {
     transform: none;
   }
 }

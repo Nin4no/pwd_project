@@ -14,15 +14,15 @@
   box-shadow: var(--shadow-sm);
   overflow: hidden;
   transition:
-    transform var(--dur) var(--ease-out),
-    box-shadow var(--dur) var(--ease-out),
-    border-color var(--dur) var(--ease-out);
+    transform var(--dur-card-float) var(--ease-float),
+    box-shadow var(--dur-card-float) var(--ease-float),
+    border-color var(--dur-card-float) var(--ease-float);
 }
 @media (hover: hover) and (pointer: fine) {
   .card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow);
-    border-color: var(--border-strong);
+    transform: translate3d(0, var(--card-float-y), 0);
+    box-shadow: var(--shadow-card-float);
+    border-color: color-mix(in srgb, var(--primary) 26%, var(--border));
   }
 }
 .thumb {
@@ -188,15 +188,34 @@
   font-size: var(--fs-sub);
   font-weight: 600;
   border-radius: var(--r-sm);
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
   transition:
     color var(--dur) var(--ease-out),
-    background-color var(--dur) var(--ease-out);
+    background-color var(--dur) var(--ease-out),
+    box-shadow var(--dur-float) var(--ease-float),
+    transform var(--dur-float) var(--ease-float);
+}
+.moreArrow {
+  display: inline-block;
+  transition: transform var(--dur-fast) var(--ease-out);
 }
 @media (hover: hover) and (pointer: fine) {
   .more:hover {
     background: var(--primary-soft);
     color: var(--primary-dark);
+    transform: translateY(var(--btn-float-y));
+    box-shadow: var(--shadow-btn-hover);
   }
+  .more:hover .moreArrow {
+    transform: translateX(3px);
+  }
+}
+.more:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: none;
+  transition-duration: var(--dur-press);
 }
 .more:focus-visible,
 .likePill:focus-visible {
@@ -224,21 +243,17 @@
   letter-spacing: 0;
   line-height: 1.4;
   cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
   transition:
     background-color var(--dur) var(--ease-out),
     border-color var(--dur) var(--ease-out),
     color var(--dur) var(--ease-out),
-    transform var(--dur-fast) var(--ease-out);
-}
-@media (hover: hover) and (pointer: fine) {
-  .likePill:not(.liked):hover {
-    background: var(--primary-soft);
-    border-color: color-mix(in srgb, var(--primary) 30%, transparent);
-    color: var(--primary-dark);
-  }
+    transform var(--dur-press) var(--ease-out);
 }
 .likePill:active {
-  transform: scale(0.97);
+  transform: scale(0.96);
 }
 .likePill.liked {
   color: var(--danger);
@@ -269,7 +284,12 @@
   .card,
   .card:hover,
   .more,
+  .more:hover,
+  .more:active,
+  .moreArrow,
+  .more:hover .moreArrow,
   .likePill,
+  .likePill:hover,
   .likePill:active {
     transition: none;
     transform: none;

@@ -18,9 +18,9 @@
   scrollbar-width: none;
   -ms-overflow-style: none;
   -webkit-overflow-scrolling: touch;
-  /* 카드 box-shadow 및 호버 translateY(-2px)가 상하로 잘리지 않도록 여유 공간 확보 */
-  padding-block: var(--sp-3) var(--sp-5);
-  margin-block: calc(-1 * var(--sp-3)) calc(-1 * var(--sp-5));
+  /* 카드 호버 부유(-4px) 및 확산 그림자가 상하로 잘리지 않도록 여유 공간 확보 */
+  padding-block: 16px 36px;
+  margin-block: -16px -36px;
 }
 
 .track::-webkit-scrollbar {
@@ -33,6 +33,8 @@
   scroll-snap-align: start;
   flex: 0 0 calc((100% - 2 * var(--carousel-gap)) / 3);
   min-width: 0;
+  opacity: 1;
+  transform: none;
 }
 
 .slide > * {
@@ -59,12 +61,10 @@
   box-shadow: var(--shadow);
   color: var(--text);
   cursor: pointer;
-  transition:
-    background-color var(--dur) var(--ease-out),
-    border-color var(--dur) var(--ease-out),
-    color var(--dur) var(--ease-out),
-    box-shadow var(--dur) var(--ease-out),
-    transform var(--dur-fast) var(--ease-out);
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform var(--dur-press) var(--ease-out);
 }
 
 /* HomeSection .frame(padding: var(--sp-7)) 여백을 활용해 카드 가장자리 걸쳐 배치 */
@@ -74,16 +74,6 @@
 
 .navNext {
   right: calc(-1 * var(--sp-4));
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .navBtn:hover {
-    background-color: var(--surface);
-    border-color: var(--primary);
-    color: var(--primary-dark);
-    box-shadow: var(--shadow);
-    transform: translateY(-50%) scale(1.04);
-  }
 }
 
 .navBtn:active {
@@ -131,7 +121,86 @@
   }
 }
 
+/* 스크롤 리빌 코레오그래피 — Support(.slide 비균등 스태거, 복제 슬롯 제외) + .navBtn 페이드만 */
+.carousel[data-reveal='hidden'] .slide:not([data-carousel-clone='true']) {
+  opacity: 0;
+}
+
+.carousel[data-reveal='revealed'] .slide:not([data-carousel-clone='true']) {
+  animation: slideReveal var(--dur-reveal-card, 360ms) var(--ease-out) var(--reveal-delay, 0ms)
+    backwards;
+}
+
+.carousel[data-reveal='hidden'] .navBtn {
+  opacity: 0;
+}
+
+.carousel[data-reveal='revealed'] .navBtn {
+  animation: navBtnReveal 240ms var(--ease-out) 180ms backwards;
+}
+
+@keyframes slideReveal {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0) scale(0.992);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes navBtnReveal {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 카드 플라이인: IntersectionObserver 상태(data-fly-in) 기반 순수 수직 스태거 부유 transition (CSS view-timeline 미사용) */
+@media (prefers-reduced-motion: no-preference) {
+  .carousel[data-fly-in='pending'] .slide:not([data-carousel-clone='true']) {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0);
+    transition: none;
+  }
+
+  .carousel[data-fly-in='entered'] .slide:not([data-carousel-clone='true']) {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 440ms var(--ease-float, cubic-bezier(0.22, 1, 0.36, 1)) var(--fly-in-delay, 0ms),
+      transform 520ms var(--ease-float, cubic-bezier(0.22, 1, 0.36, 1)) var(--fly-in-delay, 0ms);
+  }
+
+  .carousel[data-fly-in='pending'] .slide[data-carousel-clone='true'],
+  .carousel[data-fly-in='entered'] .slide[data-carousel-clone='true'] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .slide,
+  .carousel[data-fly-in='pending'] .slide:not([data-carousel-clone='true']),
+  .carousel[data-fly-in='entered'] .slide:not([data-carousel-clone='true']),
+  .carousel[data-reveal='hidden'] .slide:not([data-carousel-clone='true']),
+  .carousel[data-reveal='revealed'] .slide:not([data-carousel-clone='true']) {
+    opacity: 1;
+    transform: none;
+    transition: none;
+    animation: none;
+  }
+
+  .carousel[data-reveal='hidden'] .navBtn,
+  .carousel[data-reveal='revealed'] .navBtn {
+    opacity: 1;
+    animation: none;
+  }
+
   .navBtn,
   .navBtn:hover,
   .navBtn:active {

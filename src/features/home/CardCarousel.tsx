@@ -7,9 +7,21 @@ import {
   useMemo,
   useRef,
   useState,
+  type CSSProperties,
   type FocusEvent,
   type ReactNode,
 } from 'react';
+import {
+  computeCarouselSlotRevealDelayMs,
+  type RevealState,
+} from '../../design/motion/scrollReveal';
+import {
+  CARD_CAROUSEL_FLY_IN_CONFIG,
+  computeCardFlyInDelayMs,
+  resolveInitialCardFlyInPhase,
+  resolveNextCardFlyInPhase,
+  type CardCarouselFlyInPhase,
+} from './cardCarouselFlyIn';
 import {
   LOOP_TOLERANCE,
   MAX_VISIBLE_SLOTS,
@@ -28,6 +40,8 @@ export interface CardCarouselProps {
   label: string;
   /** 슬라이드 아이템 개수 (동적 목록 변경 시 레이아웃 재계산 트리거) */
   itemCount?: number;
+  /** 섹션 스크롤 리빌 상태 (기본 'instant': 단독 사용 시 즉시 노출) */
+  revealState?: RevealState;
   children: ReactNode;
 }
 
@@ -108,10 +122,17 @@ function measureTrackGeometry(
 }
 
 /** 홈 섹션 공용 카드 캐러셀 (최근 작업한 방 · 인기 쇼룸) — 무이음 무한 우측 루프 */
-export default function CardCarousel({ label, itemCount, children }: CardCarouselProps) {
+export default function CardCarousel({
+  label,
+  itemCount,
+  revealState = 'instant',
+  children,
+}: CardCarouselProps) {
+  const carouselRef = useRef<HTMLDivElement | null>(null);
   const trackRef = useRef<HTMLDivElement | null>(null);
   const [hasOverflow, setHasOverflow] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(getPrefersReducedMotion);
+  const [flyInPhase, setFlyInPhase] = useState<CardCarouselFlyInPhase>('settled');
   const [isHovered, setIsHovered] = useState(false);
   const [isFocusedWithin, setIsFocusedWithin] = useState(false);
   const [isPointerPaused, setIsPointerPaused] = useState(false);
@@ -120,6 +141,8 @@ export default function CardCarousel({ label, itemCount, children }: CardCarouse
   );
   const [manualTick, setManualTick] = useState(0);
 
+  const flyInPhaseRef = useRef<CardCarouselFlyInPhase>('settled');
+  const flyInSettleTimerRef = useRef<number | null>(null);
   const pointerCooldownTimerRef = useRef<number | null>(null);
   const scrollIdleTimerRef = useRef<number | null>(null);
   const programmaticFallbackTimerRef = useRef<number | null>(null);
@@ -136,6 +159,30 @@ export default function CardCarousel({ label, itemCount, children }: CardCarouse
   const slots = useMemo(
     () => buildLoopSlots(resolvedItemCount, cloneCount),
     [resolvedItemCount, cloneCount],
+  );
+
+  const clearFlyInSettleTimer = useCallback(() => {
+    if (flyInSettleTimerRef.current !== null) {
+      window.clearTimeout(flyInSettleTimerRef.current);
+      flyInSettleTimerRef.current = null;
+    }
+  }, []);
+
+  const updateFlyInPhase = useCallback(
+    (next: CardCarouselFlyInPhase) => {
+      if (flyInPhaseRef.current === next) return;
+      flyInPhaseRef.current = next;
+      setFlyInPhase(next);
+      clearFlyInSettleTimer();
+      if (next === 'entered') {
+        flyInSettleTimerRef.current = window.setTimeout(() => {
+          flyInSettleTimerRef.current = null;
+          flyInPhaseRef.current = 'settled';
+          setFlyInPhase('settled');
+        }, CARD_CAROUSEL_FLY_IN_CONFIG.settleDurationMs);
+      }
+    },
+    [clearFlyInSettleTimer],
   );
 
   const clearSettleTimers = useCallback(() => {
@@ -349,15 +396,77 @@ export default function CardCarousel({ label, itemCount, children }: CardCarouse
     return () => document.removeEventListener('visibilitychange', onVisibilityChange);
   }, []);
 
+  /** 초기 마운트 및 아이템 변경 시 뷰포트 기하 기준 플라이인 상태 결정 (fail-safe: 가시 중 즉시 정착) */
+  useLayoutEffect(() => {
+    const carouselEl = carouselRef.current;
+    const supportsObserver = typeof IntersectionObserver !== 'undefined';
+    if (!carouselEl || reducedMotion || !supportsObserver) {
+      updateFlyInPhase('settled');
+      return;
+    }
+
+    const rect = carouselEl.getBoundingClientRect();
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+    const initial = resolveInitialCardFlyInPhase({
+      reducedMotion,
+      supportsObserver,
+      rectTop: rect.top,
+      viewportHeight,
+    });
+
+    if (initial === 'pending') {
+      updateFlyInPhase('pending');
+    } else if (flyInPhaseRef.current === 'pending') {
+      updateFlyInPhase(rect.bottom <= 0 ? 'settled' : 'entered');
+    } else {
+      updateFlyInPhase('settled');
+    }
+  }, [reducedMotion, resolvedItemCount, updateFlyInPhase]);
+
+  /** IntersectionObserver 기반 redBus 카드 스태거 플라이인 감지 (CSS view-timeline 미사용) */
+  useEffect(() => {
+    const carouselEl = carouselRef.current;
+    if (!carouselEl || reducedMotion || typeof IntersectionObserver === 'undefined') {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[entries.length - 1];
+        if (!entry) return;
+        const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+        const next = resolveNextCardFlyInPhase(flyInPhaseRef.current, {
+          reducedMotion,
+          isIntersecting: entry.isIntersecting,
+          intersectionRatio: entry.intersectionRatio,
+          rectTop: entry.boundingClientRect.top,
+          rectBottom: entry.boundingClientRect.bottom,
+          viewportHeight,
+        });
+        updateFlyInPhase(next);
+      },
+      {
+        rootMargin: `0px 0px ${CARD_CAROUSEL_FLY_IN_CONFIG.resetBelowMarginPx}px 0px`,
+        threshold: [0, CARD_CAROUSEL_FLY_IN_CONFIG.enterThreshold, 0.1, 0.15, 0.25],
+      },
+    );
+
+    observer.observe(carouselEl);
+    return () => {
+      observer.disconnect();
+    };
+  }, [reducedMotion, resolvedItemCount, updateFlyInPhase]);
+
   useEffect(() => {
     return () => {
       if (pointerCooldownTimerRef.current !== null) {
         window.clearTimeout(pointerCooldownTimerRef.current);
       }
+      clearFlyInSettleTimer();
       clearSettleTimers();
       cancelSnapRestore();
     };
-  }, [clearSettleTimers, cancelSnapRestore]);
+  }, [clearFlyInSettleTimer, clearSettleTimers, cancelSnapRestore]);
 
   const executeStep = useCallback(
     (direction: 1 | -1) => {
@@ -521,7 +630,10 @@ export default function CardCarousel({ label, itemCount, children }: CardCarouse
 
   return (
     <div
+      ref={carouselRef}
       className={s.carousel}
+      data-reveal={revealState}
+      data-fly-in={flyInPhase}
       role="region"
       aria-roledescription="carousel"
       aria-label={label}
@@ -560,13 +672,21 @@ export default function CardCarousel({ label, itemCount, children }: CardCarouse
             slot.kind === 'real'
               ? `real-${slot.realIndex}-${childKey}`
               : `${slot.kind}-${slot.segmentIndex}-${childKey}`;
+          const revealDelayMs = slot.isClone ? 0 : computeCarouselSlotRevealDelayMs(slot);
+          const flyInDelayMs = computeCardFlyInDelayMs(slot);
+          const slideStyle = {
+            '--reveal-delay': `${revealDelayMs}ms`,
+            '--fly-in-delay': `${flyInDelayMs}ms`,
+          } as CSSProperties;
 
           return (
             <div
               key={wrapperKey}
               className={s.slide}
+              style={slideStyle}
               aria-hidden={slot.isClone ? true : undefined}
               data-carousel-clone={slot.isClone ? 'true' : undefined}
+              data-carousel-slot-index={slot.isClone ? undefined : Math.min(slot.realIndex, 3)}
             >
               {node}
             </div>

@@ -141,7 +141,15 @@
   font-weight: 600;
   letter-spacing: var(--ls-body);
   cursor: pointer;
-  transition: background-color var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-float) var(--ease-float),
+    transform var(--dur-float) var(--ease-float);
 }
 .panelToggle svg {
   flex: none;
@@ -163,10 +171,6 @@
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
-.edgeTab:active,
-.panelToggle:active {
-  transform: scale(0.975);
-}
 @media (hover: hover) and (pointer: fine) {
   .panelScroll::-webkit-scrollbar-thumb:hover {
     background: var(--muted);
@@ -177,9 +181,22 @@
     border-color: var(--border-strong);
     color: var(--text);
   }
+  .panelToggle:hover {
+    transform: translateY(var(--btn-float-y));
+    box-shadow: var(--shadow-btn-hover-strong);
+  }
   .panelToggle:hover svg {
     color: var(--primary);
   }
+}
+.edgeTab:active {
+  transform: scale(0.975);
+  transition-duration: var(--dur-press);
+}
+.panelToggle:active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: var(--shadow-sm);
+  transition-duration: var(--dur-press);
 }
 .stage {
   position: absolute;
@@ -220,6 +237,7 @@
     transition: none;
   }
   .edgeTab:active,
+  .panelToggle:hover,
   .panelToggle:active {
     transform: none;
   }

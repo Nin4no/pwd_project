@@ -56,12 +56,15 @@
   line-height: 1;
   white-space: nowrap;
   cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
   transition:
     background-color var(--dur-fast) var(--ease-out),
     border-color var(--dur-fast) var(--ease-out),
     color var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out),
-    transform var(--dur-fast) var(--ease-out);
+    box-shadow var(--dur-float) var(--ease-float),
+    transform var(--dur-float) var(--ease-float);
 }
 
 .pill[aria-pressed='true'] {
@@ -69,10 +72,6 @@
   border-color: var(--ink);
   color: var(--brand-ink);
   box-shadow: var(--shadow-sm);
-}
-
-.pill:active {
-  transform: scale(0.975);
 }
 
 .pill:focus-visible {
@@ -98,15 +97,27 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .pill:hover:not([aria-pressed='true']) {
+  .pill:hover:not(:disabled) {
+    transform: translateY(var(--btn-float-y));
+    box-shadow: var(--shadow-btn-hover);
+  }
+  .pill:hover:not([aria-pressed='true']):not(:disabled) {
     background-color: var(--surface);
     border-color: var(--border-strong);
     color: var(--text);
   }
-  .pill[aria-pressed='true']:hover {
+  .pill[aria-pressed='true']:hover:not(:disabled) {
     background-color: var(--brand-dark);
     border-color: var(--brand-dark);
+    box-shadow: var(--shadow-btn-hover-strong);
   }
+}
+
+.pill:active:not(:disabled),
+.pill[aria-pressed='true']:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+  box-shadow: var(--shadow-btn-active);
+  transition-duration: var(--dur-press);
 }
 
 @media (max-width: 640px) {
@@ -126,7 +137,8 @@
   .walkHint {
     transition: none;
   }
-  .pill:active {
+  .pill:hover:not(:disabled),
+  .pill:active:not(:disabled) {
     transform: none;
   }
 }
